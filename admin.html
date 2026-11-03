@@ -8,8 +8,8 @@
 <title>Phòng quản đề · ExamLab Khoa Bảng</title>
 <meta content="Biên soạn, quản lý và xuất bản bộ đề ôn tập ExamLab" name="description"/>
 <script>try{document.documentElement.dataset.theme=localStorage.getItem('examlab.theme')==='dark'?'dark':'light'}catch(e){document.documentElement.dataset.theme='light'}</script>
-<link href="css/base.css?v=6" rel="stylesheet"/>
-<link href="css/admin.css?v=9.1" rel="stylesheet"/>
+<link href="css/base.css?v=16.0" rel="stylesheet"/>
+<link href="css/admin.css?v=16.0" rel="stylesheet"/>
 <link href="css/site-polish.css?v=6" rel="stylesheet"/>
 <link href="css/mobile-layout.css?v=6" rel="stylesheet"/>
 <link href="css/mobile-controls.css?v=6" rel="stylesheet"/>
@@ -38,6 +38,7 @@
 <div class="admin-panel admin-editor-shell" id="editorShell"><div class="admin-empty" id="adminEmpty"><span class="admin-empty-icon">✒</span><h2>Chọn một bộ đề để biên soạn</h2><p>Chọn đề từ danh sách bên trái hoặc tạo mới. Có thể thêm từng câu, trắc nghiệm một đáp án, nhiều đáp án và câu trả lời ngắn.</p></div>
 <div hidden="" id="editorUI"><div class="admin-panel-head admin-edit-heading"><div><span class="eyebrow">BIÊN SOẠN ĐỀ THI</span><h2 id="editorHeadline">Bộ đề</h2><p id="editStatus">Những thay đổi chưa được lưu</p></div><div class="editor-head-actions"><button class="btn btn-ghost btn-sm" id="previewBank">◉ Xem thử</button><button class="btn btn-ghost btn-sm" disabled="" id="toggleBankVisibility" type="button">◌ Chưa xuất bản</button><button class="btn btn-primary btn-sm" id="saveBank">✓ Lưu đề</button></div></div>
 <div class="admin-detail-body"><div class="admin-meta-grid"><label>Tên bài ôn tập <b>*</b><input autocomplete="off" id="bankTitle" maxlength="150" placeholder="Ví dụ: Kiểm tra Hóa 12 - Este, Lipit" type="text"/></label><label>Môn học <b>*</b><select id="bankSubject"><option value="toan">Toán học</option><option value="ly">Vật lý</option><option value="hoa">Hóa học</option><option value="sinh">Sinh học</option></select></label><label>Thời gian (phút) <b>*</b><input id="bankDuration" max="300" min="1" type="number" value="60"/></label><label class="span-full">Giới thiệu / ghi chú<textarea id="bankDescription" placeholder="Nội dung và phạm vi kiến thức..." rows="2"></textarea></label></div>
+<div id="gradingConfig" aria-label="Cấu hình chấm điểm"></div>
 <div class="question-section-heading"><div><span class="eyebrow">NGÂN HÀNG CÂU HỎI</span><h3><span id="questionCount">0</span> câu trong đề</h3></div><button class="btn btn-ghost btn-sm" id="addQuestion">＋ Thêm câu</button></div>
 <div class="question-workspace"><div class="question-index"><div class="admin-question-list" id="questionList"></div></div><div class="question-details" id="questionDetails"><div class="admin-empty inner"><span class="admin-empty-icon">✎</span><b>Chọn một câu bên trái</b><p>Nhập nội dung, đáp án và lời giải ở đây.</p></div></div></div>
 <div class="editor-bottom"><span id="bankCountNote">Có thể lưu đề khi đã điền đủ nội dung và lời giải.</span><div><button class="btn btn-ghost btn-sm" id="exportBank">⇩ Tải bộ đề</button><button class="btn btn-danger btn-sm" id="deleteBank">Xóa đề</button></div></div>
@@ -55,7 +56,7 @@
 <script src="supabase-config.js"></script>
 <script src="js/supabase-client.js?v=6"></script>
 <script src="js/mfa-route-guard.js?v=8"></script>
-<script src="js/admin-auth.js?v=6"></script><script src="js/role-visibility.js?v=13.0"></script><script src="js/jszip.min.js?v=6"></script><script src="js/admin.js?v=15.0"></script>
+<script src="js/admin-auth.js?v=6"></script><script src="js/role-visibility.js?v=13.0"></script><script src="js/jszip.min.js?v=6"></script><script src="js/admin.js?v=16.0"></script>
 <script src="js/visible-profile-name.js?v=8"></script>
 </body>
 </html>

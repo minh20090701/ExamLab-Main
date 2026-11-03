@@ -1,0 +1,115 @@
+{
+  "format": "examlab.quiz.v1",
+  "id": "v16-mau-hon-hop-kiem-tra",
+  "title": "Mẫu V16 · Trắc nghiệm, Đúng/Sai và Trả lời ngắn",
+  "subject": "hoa",
+  "description": "Bộ đề mẫu để kiểm tra chấm điểm theo ba phần. Không phải đề kiểm tra chính thức.",
+  "durationMinutes": 15,
+  "grading": {
+    "points": {
+      "choice": 0.25,
+      "truefalse": 1,
+      "short": 0.5
+    },
+    "tfMode": "custom",
+    "tfPartial": [
+      0.1,
+      0.25,
+      0.5,
+      0.75
+    ]
+  },
+  "questions": [
+    {
+      "id": "mc-1",
+      "type": "single",
+      "text": "Nước có công thức hóa học là gì?",
+      "options": {
+        "A": "CO₂",
+        "B": "H₂O",
+        "C": "NH₃",
+        "D": "NaCl"
+      },
+      "answer": "B",
+      "explanation": "Công thức của nước là H₂O."
+    },
+    {
+      "id": "tf2",
+      "type": "truefalse",
+      "text": "Xét hai phát biểu về nước:",
+      "statements": [
+        "Nước có công thức H₂O.",
+        "Nước tinh khiết dẫn điện tốt như dung dịch muối."
+      ],
+      "answer": [
+        true,
+        false
+      ],
+      "explanation": "Nước có công thức H₂O; nước tinh khiết dẫn điện rất kém."
+    },
+    {
+      "id": "tf3",
+      "type": "truefalse",
+      "text": "Xét ba phát biểu về nguyên tử:",
+      "statements": [
+        "Hạt nhân nguyên tử có proton.",
+        "Electron mang điện tích dương.",
+        "Neutron không mang điện tích."
+      ],
+      "answer": [
+        true,
+        false,
+        true
+      ],
+      "explanation": "Proton dương, electron âm, neutron trung hòa."
+    },
+    {
+      "id": "tf4",
+      "type": "truefalse",
+      "text": "Xét bốn phát biểu về oxygen:",
+      "statements": [
+        "Oxygen là nguyên tố hóa học.",
+        "O₂ là phân tử oxygen.",
+        "Oxygen có số hiệu nguyên tử bằng 8.",
+        "O₂ là khí hiếm."
+      ],
+      "answer": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "explanation": "Oxygen (Z = 8) là nguyên tố; O₂ là phân tử khí oxygen, không phải khí hiếm."
+    },
+    {
+      "id": "tf5",
+      "type": "truefalse",
+      "text": "Xét năm phát biểu về các chất phổ biến:",
+      "statements": [
+        "NaCl là muối ăn.",
+        "CO₂ là carbon dioxide.",
+        "H₂ là hydrogen.",
+        "Fe là kí hiệu của vàng.",
+        "CH₄ là methane."
+      ],
+      "answer": [
+        true,
+        true,
+        true,
+        false,
+        true
+      ],
+      "explanation": "Fe là iron (sắt); vàng là Au."
+    },
+    {
+      "id": "short-1",
+      "type": "short",
+      "text": "Phân tử nước có bao nhiêu nguyên tử hydrogen?",
+      "answer": "2",
+      "aliases": [
+        "02"
+      ],
+      "explanation": "H₂O có hai nguyên tử hydrogen."
+    }
+  ]
+}

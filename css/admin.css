@@ -74,3 +74,26 @@ html[data-theme="dark"] .admin-hero-mark div{color:#e0ab80;border-color:#c48c64;
 #toggleBankVisibility:disabled{opacity:.68}
 .admin-bank-row small{line-height:1.5}
 @media(max-width:650px){.editor-head-actions{flex-wrap:wrap;gap:7px}#toggleBankVisibility{min-width:0}}
+
+/* ExamLab V16: true/false (2–5 statements) and per-section grading */
+.grading-editor{margin:18px 0 23px;padding:19px;border:1px solid var(--line,#80604e);border-radius:16px;background:var(--paper,rgba(255,255,255,.03));}
+.grading-head{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:12px}
+.grading-head h3{margin:0 0 5px;font-size:19px}
+.grading-head p,.grading-note,.grading-tf-box p{font-size:12px;line-height:1.65;color:var(--muted);margin:0}
+.grading-tag{font-size:10px;letter-spacing:.7px;font-weight:900;padding:6px 9px;border:1px solid var(--line);border-radius:8px;white-space:nowrap}
+.grading-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.grading-grid label{display:grid;gap:6px;min-width:0;font-size:12px;font-weight:800}
+.grading-grid input,.grading-tf-box select,.grading-partial input{background:var(--paper,#fff);color:var(--ink,#222);border:1px solid var(--line,#ccc);border-radius:10px;padding:10px;min-width:0;width:100%}
+.grading-grid small{font-size:10px;font-weight:500;color:var(--muted)}
+.grading-tf-box{margin-top:15px;padding:13px;background:rgba(128,100,77,.06);border:1px solid var(--line);border-radius:12px}
+.grading-tf-box .editor-field{display:grid;gap:7px}
+.grading-partial{margin-top:11px}.grading-partial[hidden]{display:none!important}
+.grading-partial-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:9px}
+.grading-partial-grid label{display:grid;gap:5px;font-weight:700;font-size:11px}
+.grading-note{margin-top:12px}
+.tf-edit-list{display:grid;gap:10px;margin-top:10px}
+.tf-edit-row{display:grid;grid-template-columns:26px minmax(0,1fr) 104px 33px;align-items:center;gap:7px}
+.tf-edit-row input,.tf-edit-row select{min-width:0;width:100%;padding:10px 9px;border:1px solid var(--line);border-radius:9px;background:var(--paper,#fff);color:var(--ink,#222)}
+.tf-letter{font-weight:900;color:var(--violet,#ab7151)}
+.tf-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px}
+@media(max-width:700px){.grading-grid{grid-template-columns:1fr}.grading-partial-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tf-edit-row{grid-template-columns:22px minmax(0,1fr) 82px 28px;gap:4px}.tf-edit-row input,.tf-edit-row select{padding:8px 5px;font-size:12px}}

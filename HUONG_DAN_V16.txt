@@ -1,0 +1,11 @@
+EXAMLAB V16 – CÂU ĐÚNG/SAI VÀ CHẤM ĐIỂM
+
+1. Giải nén và tải toàn bộ nội dung ZIP này lên thư mục gốc của ExamLab-Main.
+2. Ghi đè admin.html, index.html, js/admin.js, js/app.js, css/admin.css, css/base.css.
+3. Giữ nguyên các file khác, nhất là supabase-config.js.
+4. Mở Admin, chọn đề, chọn Đúng/Sai 2-5 ý; chỉnh điểm từng dạng.
+5. Lưu đề trên Admin rồi bấm Xuất bản đề.
+6. Bài cũ tiếp tục hiển thị điểm đã chấm; thay đổi cấu hình chỉ tác động đến lượt thi mới.
+7. Dùng data/MAU_DE_HON_HOP_V16.json để thử nghiệm trước.
+
+Không cần chạy SQL; thuộc tính grading lưu trong payload của đề.
