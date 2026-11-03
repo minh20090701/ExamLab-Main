@@ -110,7 +110,38 @@
  function updateBankField(e){const b=state.draft;if(!b)return;const fields={bankTitle:'title',bankSubject:'subject',bankDescription:'description',bankDuration:'durationMinutes'};const key=fields[e.target.id];if(!key)return;b[key]=key==='durationMinutes'?Number(e.target.value):e.target.value;markDirty()}
  async function saveBank(){try{const b=normalize(state.draft);await dbAction('save',b);const i=state.banks.findIndex(v=>v.id===b.id);if(i<0)state.banks.push(b);else state.banks[i]=b;state.draft=structuredClone(b);state.selected=b.id;state.dirty=false;renderEditor();refresh();toast(`Đã lưu “${b.title}” · ${b.questions.length} câu`)}catch(e){toast(e.message,true)}}
  async function newBank(){if(!(await ensureLeave()))return;const b={format:FORMAT,id:makeId('de'),title:'',subject:'hoa',description:'',durationMinutes:60,questions:[]};state.draft=b;state.selected=b.id;state.selectedQ=-1;state.dirty=true;renderEditor();refresh();$('#bankTitle').focus()}
- async function deleteBank(){if(!state.draft)return;const b=state.draft;if(!(await window.ExamLabDialog.confirm(`Bộ đề “${b.title||'chưa đặt tên'}” sẽ bị xóa khỏi bộ nhớ thiết bị.`,{title:'Xóa bộ đề',confirmText:'Xóa bộ đề',danger:true})))return;await dbAction('remove',b.id);state.banks=state.banks.filter(x=>x.id!==b.id);state.draft=null;state.selected=null;state.selectedQ=-1;state.dirty=false;renderEditor();refresh();toast('Đã xóa bộ đề trên thiết bị')}
+ let deletingBank=false;
+ async function deleteBank(){
+  if(deletingBank||!state.draft)return;
+  const b=state.draft,bankId=String(b.id);
+  const message=`Xóa bộ đề “${b.title||'chưa đặt tên'}” khỏi ExamLab?
+Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện lại khi đồng bộ. Lịch sử điểm đã nộp vẫn được giữ.`;
+  const accepted=window.ExamLabDialog?.confirm
+   ? await window.ExamLabDialog.confirm(message,{title:'Xóa bộ đề khỏi hệ thống',confirmText:'Xóa đề',danger:true})
+   : window.confirm(message);
+  if(!accepted)return;
+  deletingBank=true;
+  const button=$('#deleteBank');if(button)button.disabled=true;
+  try{
+   const cloud=window.ExamLabSupabase;
+   if(!cloud)throw Error(window.ExamLabSupabaseError||'Không kết nối được Supabase. Chưa xóa đề.');
+   const {data,error}=await cloud.rpc('examlab_admin_delete_deck',{p_deck_id:bankId});
+   if(error)throw Error(error.message||'Máy chủ từ chối xóa đề');
+   // Supabase đã xác nhận; lúc này mới xóa bản lưu trong thiết bị.
+   let localError=null;
+   try{await dbAction('remove',bankId)}catch(e){localError=e}
+   state.banks=state.banks.filter(x=>String(x.id)!==bankId);
+   state.visibility.delete(bankId);
+   state.draft=null;state.selected=null;state.selectedQ=-1;state.dirty=false;
+   renderEditor();refresh();
+   if(localError)toast('Đã xóa đề trên Supabase, nhưng bộ nhớ máy chưa được dọn: '+localError.message,true);
+   else toast(data===true?'Đã xóa đề trên Supabase và thiết bị.':'Đã xóa bản nháp cục bộ (đề chưa tồn tại trên Supabase).');
+  }catch(e){
+   toast('Không xóa được đề: '+(e?.message||e)+'. Hãy chạy SQL FIX_DELETE_DECK_V15.sql và kiểm tra quyền Admin.',true);
+  }finally{
+   deletingBank=false;if(button)button.disabled=false;
+  }
+ }
  function saveFile(text,name,type='application/json;charset=utf-8'){const blob=new Blob([text],{type}),url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
  function exportBank(){try{const b=normalize(state.draft);saveFile(JSON.stringify(b,null,2),`de-${b.subject}-${b.id}.json`);toast('Đã tải bộ đề')}catch(e){toast(e.message,true)}}
  async function readVisibilityStatuses(db){
@@ -118,22 +149,29 @@
    if(error)throw Error('Chưa cài SQL quản lý ẩn/hiện đề hoặc thiếu quyền Admin: '+error.message);
    return new Map((data||[]).map(r=>[String(r.deck_id),r.published===true]));
  }
+ async function readRemovedIds(db){
+   const {data,error}=await db.rpc('examlab_admin_deleted_deck_ids');
+   if(error)throw Error('Chưa cài chức năng xóa đề trên Supabase: '+error.message);
+   return new Set((data||[]).map(row=>String(row.deck_id)));
+ }
  async function publish(){
   if(state.dirty){toast('Hãy lưu thay đổi trước khi phát hành.',true);return}
   try{
    const db=window.ExamLabSupabase;if(!db)throw Error(window.ExamLabSupabaseError||'Chưa kết nối hệ thống');
    // Lấy trực tiếp trạng thái Supabase để không vô tình hiện lại các đề đã ẩn.
    const statuses=await readVisibilityStatuses(db);state.visibility=statuses;
+   const removedIds=await readRemovedIds(db);
    const all=state.banks.map(normalize);
    if(!all.length)throw Error('Không có đề nào để phát hành.');
-   let count=0,hiddenSkipped=0;
+   let count=0,hiddenSkipped=0,removedSkipped=0;
    for(const b of all){
+    if(removedIds.has(String(b.id))){removedSkipped++;continue}
     if(statuses.get(b.id)===false){hiddenSkipped++;continue}
     const {error}=await db.from('examlab_decks').upsert({id:b.id,title:b.title,subject:b.subject,payload:b,published:true,updated_at:new Date().toISOString()},{onConflict:'id'});
     if(error)throw error;count++;state.visibility.set(b.id,true);
    }
    refresh();renderEditor();
-   toast(`Đã xuất bản ${count} bộ đề.${hiddenSkipped?' Giữ nguyên '+hiddenSkipped+' đề đang ẩn.':''}`);
+   toast(`Đã xuất bản ${count} bộ đề.${hiddenSkipped?' Giữ nguyên '+hiddenSkipped+' đề đang ẩn.':''}${removedSkipped?' Bỏ qua '+removedSkipped+' đề đã xóa.':''}`);
   }catch(e){toast('Không phát hành được: '+e.message,true)}
  }
  async function toggleBankVisibility(){
@@ -272,6 +310,17 @@
    const {data,error}=await db.from('examlab_decks').select('id,payload,published').order('updated_at',{ascending:false}).limit(500);
    if(error)throw error;
    state.visibility=await readVisibilityStatuses(db);
+   const removedIds=await readRemovedIds(db);
+   if(removedIds.size){
+     const stale=state.banks.filter(bank=>removedIds.has(String(bank.id)));
+     state.banks=state.banks.filter(bank=>!removedIds.has(String(bank.id)));
+     for(const bank of stale){
+       try{await dbAction('remove',bank.id)}catch(e){console.warn('Không dọn được bản đề đã xóa trong IndexedDB',bank.id,e)}
+     }
+     if(state.draft&&removedIds.has(String(state.draft.id))){
+       state.draft=null;state.selected=null;state.selectedQ=-1;state.dirty=false;
+     }
+   }
    let added=0,invalid=0,notSaved=0;
    for(const row of data||[]){
     try{
