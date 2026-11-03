@@ -1,0 +1,181 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ExamLab V16 – Nâng cấp câu hỏi & chấm điểm</title>
+<style>
+*{box-sizing:border-box}body{margin:0;padding:28px 15px;background:#1d1715;color:#f4e3cb;font:15px/1.65 system-ui,Arial,sans-serif}.wrap{max-width:740px;margin:auto;background:#2a211d;border:1px solid #735344;border-radius:20px;padding:27px;box-shadow:0 16px 50px #0006}h1{font-size:26px;margin:0 0 8px}p{color:#d2b6a2}ol{padding-left:23px}li{margin:9px 0}code{background:#47352d;padding:2px 5px;border-radius:5px;color:#ffe0a1;overflow-wrap:anywhere}input[type=file]{display:block;background:#362821;border:1px dashed #9c7b60;border-radius:12px;padding:18px;width:100%;margin:18px 0;color:#fff}button{background:#ae5d42;color:white;font-weight:800;font-size:16px;padding:13px 22px;border:0;border-radius:11px;cursor:pointer}button:disabled{opacity:.45}#log{margin-top:16px;white-space:pre-wrap;overflow-wrap:anywhere;border-radius:12px;background:#221b18;padding:15px;min-height:52px;font-size:13px;color:#ddc5ad}.note{border-left:3px solid #e2ae70;padding:8px 13px;background:#36291f}a{color:#ffd39c}</style></head><body>
+<main class="wrap"><h1>EXAMLAB · Nâng cấp V16</h1><p><b>Đúng/Sai (2–5 ý)</b> và <b>chấm điểm theo từng phần</b>. Công cụ chạy ngay trong trình duyệt, không gửi ZIP lên máy chủ.</p>
+<ol><li>Vào GitHub <b>ExamLab-Main</b> → <b>Code → Download ZIP</b> để lấy mã mới nhất.</li><li>Bấm chọn ZIP GitHub vừa tải ở dưới.</li><li>Bấm <b>Tạo bản cập nhật V16</b> để tải ZIP gồm 6 file đã sửa và một đề mẫu.</li><li>Giải nén ZIP mới, upload các file và thư mục con lên <b>thư mục gốc</b> repository, ghi đè file cũ.</li></ol>
+<p class="note"><strong>Giữ nguyên Supabase.</strong> Không cần chạy SQL hay xóa tài liệu/đề. Sau khi upload, mở Admin → chọn đề → cấu hình điểm → Lưu đề → Xuất bản đề để áp dụng cho học sinh.</p>
+<input type="file" id="repoZip" accept=".zip,application/zip"><button type="button" id="go">Tạo bản cập nhật V16</button><div id="log" role="status">Chưa chọn file.</div>
+</main><script src="jszip.min.js"></script><script type="application/json" id="recipe">{"version":"16.0","operations":[{"path":"js/admin.js","type":"replace","old":" function normalize(raw){","new":" function normalizeLegacy(raw){"},{"path":"js/admin.js","type":"replace","old":" function refresh(){","new":"// V16: The original three question types keep their previous default equal weights.\nfunction normalizeGrading(raw){\n const v=raw&&typeof raw==='object'?raw:{};\n const p=v.points&&typeof v.points==='object'?v.points:{};\n const num=(n,fallback,min,max)=>{const x=Number(n);return Number.isFinite(x)&&x>=min&&x<=max?x:fallback};\n const mode=['linear','all','custom'].includes(v.tfMode)?v.tfMode:'linear';\n const defaults=[0.1,0.25,0.5,0.75];\n const tfPartial=defaults.map((d,i)=>num(Array.isArray(v.tfPartial)?v.tfPartial[i]:undefined,d,0,1));\n return {points:{choice:num(p.choice,1,0.01,100),truefalse:num(p.truefalse,1,0.01,100),short:num(p.short,1,0.01,100)},tfMode:mode,tfPartial};\n}\nfunction normalizeTFQuestion(q,i){\n if(!q||typeof q!=='object')throw Error(`Câu ${i+1}: nội dung Đúng/Sai không hợp lệ`);\n const lines=Array.isArray(q.statements)?q.statements:[];\n if(lines.length<2||lines.length>5)throw Error(`Câu ${i+1}: Đúng/Sai phải có 2–5 ý`);\n const answers=Array.isArray(q.answer)?q.answer:[];\n if(answers.length!==lines.length)throw Error(`Câu ${i+1}: cần chọn đáp án Đúng/Sai cho đủ ${lines.length} ý`);\n const statements=lines.map((line,k)=>{\n  const str=typeof line==='string'?line:(line&&typeof line==='object'?line.text:'');\n  if(!String(str||'').trim())throw Error(`Câu ${i+1}, ý ${k+1}: thiếu nội dung`);\n  return String(str).trim();\n });\n const answer=answers.map((x,k)=>{\n  if(x===true||x==='true'||x==='Đúng'||x==='dung'||x===1||x==='1')return true;\n  if(x===false||x==='false'||x==='Sai'||x==='sai'||x===0||x==='0')return false;\n  throw Error(`Câu ${i+1}, ý ${k+1}: cần đánh dấu Đúng hoặc Sai`);\n });\n if(!String(q.text||'').trim()&&!String(q.contentHtml||'').trim())throw Error(`Câu ${i+1}: thiếu nội dung câu hỏi`);\n if(!String(q.explanation||'').trim())throw Error(`Câu ${i+1}: thiếu lời giải chi tiết`);\n const images=Array.isArray(q.images)?q.images.filter(x=>typeof x==='string'&&/^data:image\\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(x)&&x.length<=2800000):[];\n return {id:String(q.id??i+1),type:'truefalse',text:String(q.text||''),contentHtml:String(q.contentHtml||''),images,statements,answer,explanation:String(q.explanation||''),aliases:[]};\n}\nfunction normalizedLegacyWithTF(raw,legacyNormalizer){\n if(!raw||typeof raw!=='object'||!Array.isArray(raw.questions))return legacyNormalizer(raw);\n // Validate old question types using the existing validator, without changing its behavior.\n const proxy={...raw,questions:raw.questions.map(q=>q?.type==='truefalse'\n   ? {...q,type:'short',answer:'Đúng',options:undefined,aliases:[]} : q)};\n const b=legacyNormalizer(proxy);\n b.questions=raw.questions.map((q,i)=>q?.type==='truefalse'?normalizeTFQuestion(q,i):b.questions[i]);\n b.grading=normalizeGrading(raw.grading);\n return b;\n}\n function normalize(raw){return normalizedLegacyWithTF(raw,normalizeLegacy)}\n function refresh(){"},{"path":"js/admin.js","type":"replace","old":" function renderQuestion(){","new":"function tfEditorHtml(q){\n const letters='ABCDE';\n const lines=Array.isArray(q.statements)?q.statements:[];\n return `<div class=\"editor-field\"><div class=\"field-heading\">Các ý Đúng / Sai <small>Chọn từ 2 đến 5 ý, đánh dấu đáp án từng ý.</small></div>\n  <div class=\"tf-edit-list\">${lines.map((line,i)=>`<div class=\"tf-edit-row\"><span class=\"tf-letter\">${letters[i]}</span><input type=\"text\" data-tftext=\"${i}\" placeholder=\"Nội dung ý ${letters[i]}\" value=\"${esc(typeof line==='string'?line:line?.text||'')}\"><select data-tfcorrect=\"${i}\" aria-label=\"Đáp án ý ${letters[i]}\"><option value=\"true\" ${q.answer?.[i]===true?'selected':''}>Đúng</option><option value=\"false\" ${q.answer?.[i]===false?'selected':''}>Sai</option></select><button type=\"button\" class=\"btn btn-ghost btn-xs\" data-tf-op=\"remove\" data-tf-index=\"${i}\" ${lines.length<=2?'disabled':''} title=\"Xóa ý này\">×</button></div>`).join('')}</div>\n <div class=\"tf-actions\"><button type=\"button\" class=\"btn btn-ghost btn-sm\" data-tf-op=\"add\" ${lines.length>=5?'disabled':''}>＋ Thêm ý (${lines.length}/5)</button><span class=\"small-muted\">Đúng/Sai được chấm từng ý theo cấu hình của bộ đề.</span></div></div>`;\n}\nfunction renderGradingConfig(){\n const root=$('#gradingConfig'),b=state.draft;if(!root||!b)return;\n const g=normalizeGrading(b.grading);\n // Preserve typed values until saved, but fall back to defaults for old exam banks.\n b.grading=g;\n const count={choice:0,truefalse:0,short:0};\n b.questions.forEach(q=>count[q.type==='truefalse'?'truefalse':q.type==='short'?'short':'choice']++);\n const max=count.choice*g.points.choice+count.truefalse*g.points.truefalse+count.short*g.points.short;\n const kinds=[['choice','Trắc nghiệm (chọn 1/nhiều)'],['truefalse','Đúng/Sai (2–5 ý)'],['short','Trả lời ngắn']];\n root.innerHTML=`<section class=\"grading-editor\"><div class=\"grading-head\"><div><h3>⚖ Cấu hình chấm điểm</h3><p>Admin quyết định điểm tối đa của mỗi câu theo phần; hệ thống cộng điểm rồi quy đổi về thang 10.</p></div><span class=\"grading-tag\">THANG 10</span></div>\n  <div class=\"grading-grid\">${kinds.map(([key,label])=>`<label>${label}<input type=\"number\" min=\"0.01\" max=\"100\" step=\"0.01\" data-grade-point=\"${key}\" value=\"${g.points[key]}\"><small>${count[key]} câu × ${g.points[key]} điểm</small></label>`).join('')}</div>\n  <div class=\"grading-tf-box\"><label class=\"editor-field\">Chấm Đúng/Sai theo từng ý<select data-grade-mode><option value=\"linear\" ${g.tfMode==='linear'?'selected':''}>Theo tỉ lệ số ý đúng (ví dụ 3/4 = 75%)</option><option value=\"all\" ${g.tfMode==='all'?'selected':''}>Đúng tất cả mới có điểm</option><option value=\"custom\" ${g.tfMode==='custom'?'selected':''}>Điểm một phần tùy chỉnh</option></select></label>\n  <div class=\"grading-partial\" ${g.tfMode==='custom'?'':'hidden'}><p>Tỉ lệ điểm khi chưa đúng hết các ý; khi đúng đủ luôn nhận 100%.</p><div class=\"grading-partial-grid\">${[1,2,3,4].map((n,i)=>`<label>Đúng ${n} ý<input type=\"number\" min=\"0\" max=\"100\" step=\"1\" data-grade-partial=\"${i}\" value=\"${Math.round(g.tfPartial[i]*100)}\">%</label>`).join('')}</div></div></div>\n  <p class=\"grading-note\">Tổng điểm tối đa hiện tại: <strong>${Number(max.toFixed(2))}</strong> điểm thô cho ${b.questions.length} câu. Bài làm được quy đổi về 10 điểm; chế độ trộn câu cũng tính theo các câu được chọn.</p></section>`;\n}\nfunction changeGradingField(t){\n const b=state.draft;if(!b)return false;\n if(!b.grading)b.grading=normalizeGrading(null);\n if(t.dataset.gradePoint!==undefined){\n  const x=Number(t.value);if(!Number.isFinite(x)||x<0.01||x>100)return true;\n  b.grading.points[t.dataset.gradePoint]=x;markDirty();return true;\n }\n if(t.dataset.gradeMode!==undefined){b.grading.tfMode=t.value;markDirty();renderGradingConfig();return true}\n if(t.dataset.gradePartial!==undefined){const x=Number(t.value);if(!Number.isFinite(x)||x<0||x>100)return true;b.grading.tfPartial[Number(t.dataset.gradePartial)]=x/100;markDirty();return true}\n return false;\n}\n function renderQuestion(){"},{"path":"js/admin.js","type":"replace","old":"  refreshQuestions();\n }\n function refreshQuestions(){","new":"  renderGradingConfig();refreshQuestions();\n }\n function refreshQuestions(){"},{"path":"js/admin.js","type":"replace","old":"q.type==='short'?'Điền đáp án':q.type==='single'?'Chọn một':'Chọn nhiều'","new":"q.type==='short'?'Trả lời ngắn':q.type==='single'?'Chọn một':q.type==='truefalse'?'Đúng/Sai':'Chọn nhiều'"},{"path":"js/admin.js","type":"replace","old":"  $('#questionCount').textContent=b.questions.length;","new":"  $('#questionCount').textContent=b.questions.length;renderGradingConfig();"},{"path":"js/admin.js","type":"replace","old":"  const choice=q.type!=='short';","new":"  const choice=q.type==='single'||q.type==='multiple';"},{"path":"js/admin.js","type":"replace","old":"<option value=\"multiple\" ${q.type==='multiple'?'selected':''}>Trắc nghiệm · chọn nhiều</option></select></label>","new":"<option value=\"multiple\" ${q.type==='multiple'?'selected':''}>Trắc nghiệm · chọn nhiều</option><option value=\"truefalse\" ${q.type==='truefalse'?'selected':''}>Đúng / Sai · 2–5 ý</option></select></label>"},{"path":"js/admin.js","type":"replace","old":"   ${choice?`<div class=\"editor-field\">","new":"   ${q.type==='truefalse'?tfEditorHtml(q):choice?`<div class=\"editor-field\">"},{"path":"js/admin.js","type":"replace","old":" function updateQuestionValue(target){const q=state.draft?.questions[state.selectedQ];if(!q)return;","new":" function updateQuestionValue(target){const q=state.draft?.questions[state.selectedQ];if(!q)return;\n  if(target.dataset.tftext!==undefined){q.statements[Number(target.dataset.tftext)]=target.value;markDirty();return;}\n  if(target.dataset.tfcorrect!==undefined){q.answer[Number(target.dataset.tfcorrect)]=target.value==='true';markDirty();return;}"},{"path":"js/admin.js","type":"between","start":" function changeQuestionType(type){","end":" function questionTool(action){","new":"function changeQuestionType(type){\n const q=state.draft.questions[state.selectedQ];q.type=type;\n if(type==='truefalse'){\n  q.statements=['','','',''];q.answer=[true,true,false,false];q.options=undefined;\n }else{\n  q.options=type==='short'?undefined:(q.options||{A:'',B:'',C:'',D:''});\n  q.answer=type==='short'?'':type==='multiple'?[]:'';\n  delete q.statements;\n }\n q.aliases=[];markDirty();renderQuestion();\n}\n "},{"path":"js/admin.js","type":"replace","old":"${q.type!=='short'?`<div class=\"preview-options\">","new":"${q.type==='truefalse'?`<div class=\"preview-options\">${q.statements.map((text,k)=>`<div>${'abcde'[k]}) ${esc(text)} · <b>${q.answer[k]?'Đúng':'Sai'}</b></div>`).join('')}</div>`:q.type!=='short'?`<div class=\"preview-options\">"},{"path":"js/admin.js","type":"replace","old":"${esc(Array.isArray(q.answer)?q.answer.join(', '):q.answer)}","new":"${q.type==='truefalse'?'Xem đáp án theo từng ý phía trên':esc(Array.isArray(q.answer)?q.answer.join(', '):q.answer)}"},{"path":"js/admin.js","type":"replace","old":"durationMinutes:60,questions:[]};state.draft=b;","new":"durationMinutes:60,questions:[],grading:normalizeGrading(null)};state.draft=b;"},{"path":"js/admin.js","type":"replace","old":" q.aliases=[];markDirty();renderQuestion();\n}","new":" q.aliases=[];markDirty();renderGradingConfig();renderQuestion();\n}"},{"path":"js/admin.js","type":"replace","old":" $('#editorUI').addEventListener('input',e=>{","new":" $('#gradingConfig')?.addEventListener('input',e=>changeGradingField(e.target));\n $('#gradingConfig')?.addEventListener('change',e=>{if(e.target.matches('[data-grade-point],[data-grade-partial]'))renderGradingConfig();else changeGradingField(e.target)});\n $('#editorUI').addEventListener('input',e=>{"},{"path":"js/admin.js","type":"replace","old":" $('#adminModal').addEventListener('click',e=>{","new":" $('#questionDetails').addEventListener('click',e=>{\n  const btn=e.target.closest('[data-tf-op]'),q=state.draft?.questions[state.selectedQ];\n  if(!btn||!q||q.type!=='truefalse')return;\n  if(btn.dataset.tfOp==='add'&&q.statements.length<5){q.statements.push('');q.answer.push(true)}\n  else if(btn.dataset.tfOp==='remove'&&q.statements.length>2){const i=Number(btn.dataset.tfIndex);q.statements.splice(i,1);q.answer.splice(i,1)}\n  else return;\n  markDirty();renderQuestion();\n });\n $('#adminModal').addEventListener('click',e=>{"},{"path":"js/admin.js","type":"replace","old":"if(t.id==='qType')return changeQuestionType(t.value);","new":"if(t.id==='qType')return changeQuestionType(t.value);if(t.dataset.tfcorrect!==undefined){updateQuestionValue(t);return;}"},{"path":"admin.html","type":"replace","old":"<div class=\"question-section-heading\">","new":"<div id=\"gradingConfig\" aria-label=\"Cấu hình chấm điểm\"></div>\n<div class=\"question-section-heading\">"},{"path":"js/app.js","type":"replace","old":"function validateBank(raw){","new":"function validateLegacyBank(raw){"},{"path":"js/app.js","type":"replace","old":"function validateLegacyBank(raw){","new":"// V16: The original three question types keep their previous default equal weights.\nfunction normalizeGrading(raw){\n const v=raw&&typeof raw==='object'?raw:{};\n const p=v.points&&typeof v.points==='object'?v.points:{};\n const num=(n,fallback,min,max)=>{const x=Number(n);return Number.isFinite(x)&&x>=min&&x<=max?x:fallback};\n const mode=['linear','all','custom'].includes(v.tfMode)?v.tfMode:'linear';\n const defaults=[0.1,0.25,0.5,0.75];\n const tfPartial=defaults.map((d,i)=>num(Array.isArray(v.tfPartial)?v.tfPartial[i]:undefined,d,0,1));\n return {points:{choice:num(p.choice,1,0.01,100),truefalse:num(p.truefalse,1,0.01,100),short:num(p.short,1,0.01,100)},tfMode:mode,tfPartial};\n}\nfunction normalizeTFQuestion(q,i){\n if(!q||typeof q!=='object')throw Error(`Câu ${i+1}: nội dung Đúng/Sai không hợp lệ`);\n const lines=Array.isArray(q.statements)?q.statements:[];\n if(lines.length<2||lines.length>5)throw Error(`Câu ${i+1}: Đúng/Sai phải có 2–5 ý`);\n const answers=Array.isArray(q.answer)?q.answer:[];\n if(answers.length!==lines.length)throw Error(`Câu ${i+1}: cần chọn đáp án Đúng/Sai cho đủ ${lines.length} ý`);\n const statements=lines.map((line,k)=>{\n  const str=typeof line==='string'?line:(line&&typeof line==='object'?line.text:'');\n  if(!String(str||'').trim())throw Error(`Câu ${i+1}, ý ${k+1}: thiếu nội dung`);\n  return String(str).trim();\n });\n const answer=answers.map((x,k)=>{\n  if(x===true||x==='true'||x==='Đúng'||x==='dung'||x===1||x==='1')return true;\n  if(x===false||x==='false'||x==='Sai'||x==='sai'||x===0||x==='0')return false;\n  throw Error(`Câu ${i+1}, ý ${k+1}: cần đánh dấu Đúng hoặc Sai`);\n });\n if(!String(q.text||'').trim()&&!String(q.contentHtml||'').trim())throw Error(`Câu ${i+1}: thiếu nội dung câu hỏi`);\n if(!String(q.explanation||'').trim())throw Error(`Câu ${i+1}: thiếu lời giải chi tiết`);\n const images=Array.isArray(q.images)?q.images.filter(x=>typeof x==='string'&&/^data:image\\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(x)&&x.length<=2800000):[];\n return {id:String(q.id??i+1),type:'truefalse',text:String(q.text||''),contentHtml:String(q.contentHtml||''),images,statements,answer,explanation:String(q.explanation||''),aliases:[]};\n}\nfunction normalizedLegacyWithTF(raw,legacyNormalizer){\n if(!raw||typeof raw!=='object'||!Array.isArray(raw.questions))return legacyNormalizer(raw);\n // Validate old question types using the existing validator, without changing its behavior.\n const proxy={...raw,questions:raw.questions.map(q=>q?.type==='truefalse'\n   ? {...q,type:'short',answer:'Đúng',options:undefined,aliases:[]} : q)};\n const b=legacyNormalizer(proxy);\n b.questions=raw.questions.map((q,i)=>q?.type==='truefalse'?normalizeTFQuestion(q,i):b.questions[i]);\n b.grading=normalizeGrading(raw.grading);\n return b;\n}\nfunction validateBank(raw){return normalizedLegacyWithTF(raw,validateLegacyBank)}\nfunction validateLegacyBank(raw){"},{"path":"js/app.js","type":"replace","old":"function hasAnswer(v){","new":"function tfValue(v){if(v===true||v==='true')return true;if(v===false||v==='false')return false;return null}\nfunction tfAnswerState(q,answer){\n const n=q.statements?.length||0,values=answer&&typeof answer==='object'&&!Array.isArray(answer)?answer:{};\n let done=0,correct=0;\n for(let i=0;i<n;i++){\n  const got=tfValue(values[String(i)]);if(got===null)continue;\n  done++;if(got===q.answer[i])correct++;\n }\n return {done,correct,total:n,complete:done===n};\n}\nfunction isFullyAnswered(q,answer){return q?.type==='truefalse'?tfAnswerState(q,answer).complete:hasAnswer(answer)}\nfunction questionFraction(q,answer,grading){\n if(q.type!=='truefalse')return isCorrect(q,answer)?1:0;\n const st=tfAnswerState(q,answer);if(!st.total||st.correct<=0)return 0;\n if(st.complete&&st.correct===st.total)return 1;\n if(grading.tfMode==='all')return 0;\n if(grading.tfMode==='custom')return Math.max(0,Math.min(1,Number(grading.tfPartial[Math.min(st.correct-1,3)])||0));\n return st.correct/st.total;\n}\nfunction questionWeight(q,g){return q.type==='truefalse'?g.points.truefalse:q.type==='short'?g.points.short:g.points.choice}\nfunction gradeExamQuestions(qs,answers,grading){\n const g=normalizeGrading(grading),details={};let earned=0,max=0;\n for(const q of qs){\n  const w=questionWeight(q,g),ratio=questionFraction(q,answers[q.id],g),points=w*ratio;\n  earned+=points;max+=w;\n  details[q.id]={earned:Number(points.toFixed(6)),max:w,ratio:Number(ratio.toFixed(6))};\n }\n return {earned,max,score:max>0?Math.round(earned/max*1000)/100:0,details,grading:g};\n}\nfunction tfAnswerHtml(q,e){\n const saved=e.answers[q.id]&&typeof e.answers[q.id]==='object'?e.answers[q.id]:{},letters='ABCDE';\n return `<div class=\"tf-answer-list\">${q.statements.map((line,i)=>{const key=String(i),current=tfValue(saved[key]);return `<div class=\"tf-answer-row\"><div class=\"tf-answer-statement\"><b>${letters[i]}.</b><span>${safe(line)}</span></div><div class=\"tf-answer-controls\"><label><input type=\"radio\" name=\"tf_${safe(q.id)}_${i}\" data-tf-qid=\"${safe(q.id)}\" data-tf-index=\"${i}\" value=\"true\" ${current===true?'checked':''}><span>Đúng</span></label><label><input type=\"radio\" name=\"tf_${safe(q.id)}_${i}\" data-tf-qid=\"${safe(q.id)}\" data-tf-index=\"${i}\" value=\"false\" ${current===false?'checked':''}><span>Sai</span></label></div></div>`}).join('')}</div>`;\n}\nfunction tfFormatAnswer(q,val){\n const letters='abcde',a=Array.isArray(val)?val:(val&&typeof val==='object'?val:{});\n return q.statements.map((_,i)=>{\n  const value=Array.isArray(a)?tfValue(a[i]):tfValue(a[String(i)]);\n  return `${letters[i]}) ${value===null?'Chưa trả lời':value?'Đúng':'Sai'}`;\n }).join(' · ');\n}\nfunction hasAnswer(v){"},{"path":"js/app.js","type":"between","start":"function hasAnswer(v){","end":"function renderExam(root){","new":"function hasAnswer(v){\n if(Array.isArray(v))return v.length>0;\n if(v&&typeof v==='object')return Object.values(v).some(x=>tfValue(x)!==null);\n return String(v??'').trim().length>0;\n}\nfunction countAnswered(e){\n const b=app.examBank;if(!b)return e.questionIds.filter(id=>hasAnswer(e.answers[id])).length;\n return questionsFor(e,b).filter(q=>isFullyAnswered(q,e.answers[q.id])).length;\n}\n"},{"path":"js/app.js","type":"between","start":"function renderQuestion(q,i,e){","end":"function paletteHtml(e){","new":"function renderQuestion(q,i,e){\n const current=e.answers[q.id];\n return `<article id=\"q-${i+1}\" class=\"question-card\" data-index=\"${i+1}\"><div class=\"q-top\"><span class=\"q-num\">CÂU ${String(i+1).padStart(2,'0')} / ${e.questionIds.length}</span><button type=\"button\" class=\"q-mark ${e.flagged[q.id]?'is-marked':''}\" data-action=\"flag\" data-id=\"${safe(q.id)}\">${e.flagged[q.id]?'⚑ Đã đánh dấu':'⚐ Đánh dấu xem lại'}</button></div><div class=\"q-content\">${questionContent(q)}</div><div class=\"answer-area\"><label class=\"answer-label\">Câu trả lời của bạn</label>${q.type==='short'?`<input type=\"text\" class=\"answer-field\" aria-label=\"Đáp án câu ${i+1}\" data-qid=\"${safe(q.id)}\" placeholder=\"Nhập đáp án tại đây...\" autocomplete=\"off\" value=\"${safe(current||'')}\">`:q.type==='truefalse'?tfAnswerHtml(q,e):optionsHtml(q,e)}</div></article>`;\n}\n"},{"path":"js/app.js","type":"replace","old":"function isCorrect(q,answer){if(!hasAnswer(answer))return false;","new":"function isCorrect(q,answer){if(q.type==='truefalse'){const s=tfAnswerState(q,answer);return s.total>=2&&s.complete&&s.correct===s.total}if(!hasAnswer(answer))return false;"},{"path":"js/app.js","type":"replace","old":"const qs=questionsFor(e,b);const correct=qs.filter","new":"const qs=questionsFor(e,b);const grade=gradeExamQuestions(qs,e.answers,b.grading);const correct=qs.filter"},{"path":"js/app.js","type":"replace","old":"score:Math.round(correct/qs.length*1000)/100,autoSubmitted:auto","new":"score:grade.score,earnedPoints:Number(grade.earned.toFixed(4)),maxPoints:Number(grade.max.toFixed(4)),questionScores:grade.details,gradingSnapshot:grade.grading,autoSubmitted:auto"},{"path":"js/app.js","type":"replace","old":"function verdict(q,a){return !hasAnswer(a)?'blank':isCorrect(q,a)?'correct':'wrong'}","new":"function verdict(q,a,partialRatio=0){return !hasAnswer(a)?'blank':isCorrect(q,a)?'correct':partialRatio>0?'partial':'wrong'}"},{"path":"js/app.js","type":"replace","old":"function formatAnswer(q,val){if(!hasAnswer(val))return 'Chưa trả lời';","new":"function formatAnswer(q,val){if(q.type==='truefalse')return tfFormatAnswer(q,val);if(!hasAnswer(val))return 'Chưa trả lời';"},{"path":"js/app.js","type":"replace","old":"const v=verdict(q,a.answers[q.id]);if(app.reviewFilter","new":"const point=a.questionScores?.[q.id];const v=verdict(q,a.answers[q.id],point?.ratio||0);if(app.reviewFilter"},{"path":"js/app.js","type":"replace","old":"v==='blank'?'◌ Bỏ trống':'✕ Chưa đúng'","new":"v==='blank'?'◌ Bỏ trống':v==='partial'?'◐ Đúng một phần':'✕ Chưa đúng'"},{"path":"js/app.js","type":"replace","old":"<div class=\"q-content\">${questionContent(q)}</div><div class=\"answer-review\">","new":"<div class=\"q-content\">${questionContent(q)}</div>${point?`<div class=\"grading-score-note\">Điểm câu này: <b>${Number(point.earned.toFixed(3))} / ${point.max}</b> điểm thô</div>`:''}<div class=\"answer-review\">"},{"path":"js/app.js","type":"replace","old":"[['all','Tất cả'],['wrong','Câu sai'],['blank','Chưa làm'],['correct','Câu đúng']]","new":"[['all','Tất cả'],['wrong','Câu sai'],['partial','Một phần đúng'],['blank','Chưa làm'],['correct','Câu đúng']]"},{"path":"js/app.js","type":"replace","old":"document.addEventListener('change',e=>{const t=e.target;if(t.matches('input[data-qid]')","new":"document.addEventListener('change',e=>{const t=e.target;if(t.matches('input[data-tf-qid]')&&app.exam){const id=t.dataset.tfQid,i=String(t.dataset.tfIndex);const values=app.exam.answers[id]&&typeof app.exam.answers[id]==='object'&&!Array.isArray(app.exam.answers[id])?app.exam.answers[id]:{};values[i]=t.value;app.exam.answers[id]=values;updatePalette();scheduleDraft();return;}if(t.matches('input[data-qid]')"},{"path":"js/app.js","type":"replace","old":"function paletteHtml(e){","new":"function isQuestionCompleted(e,id){const q=app.examBank?.questions?.find(item=>String(item.id)===String(id));return q?isFullyAnswered(q,e.answers[id]):hasAnswer(e.answers[id])}\nfunction paletteHtml(e){"},{"path":"js/app.js","type":"replace","old":"${hasAnswer(e.answers[id])?'is-answered':''}","new":"${isQuestionCompleted(e,id)?'is-answered':''}"},{"path":"js/app.js","type":"replace","old":"btn.classList.toggle('is-answered',hasAnswer(e.answers[id]))","new":"btn.classList.toggle('is-answered',isQuestionCompleted(e,id))"},{"path":"css/admin.css","type":"append","addition":"/* ExamLab V16: true/false (2–5 statements) and per-section grading */\n.grading-editor{margin:18px 0 23px;padding:19px;border:1px solid var(--line,#80604e);border-radius:16px;background:var(--paper,rgba(255,255,255,.03));}\n.grading-head{display:flex;justify-content:space-between;gap:12px;align-items:start;margin-bottom:12px}\n.grading-head h3{margin:0 0 5px;font-size:19px}\n.grading-head p,.grading-note,.grading-tf-box p{font-size:12px;line-height:1.65;color:var(--muted);margin:0}\n.grading-tag{font-size:10px;letter-spacing:.7px;font-weight:900;padding:6px 9px;border:1px solid var(--line);border-radius:8px;white-space:nowrap}\n.grading-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}\n.grading-grid label{display:grid;gap:6px;min-width:0;font-size:12px;font-weight:800}\n.grading-grid input,.grading-tf-box select,.grading-partial input{background:var(--paper,#fff);color:var(--ink,#222);border:1px solid var(--line,#ccc);border-radius:10px;padding:10px;min-width:0;width:100%}\n.grading-grid small{font-size:10px;font-weight:500;color:var(--muted)}\n.grading-tf-box{margin-top:15px;padding:13px;background:rgba(128,100,77,.06);border:1px solid var(--line);border-radius:12px}\n.grading-tf-box .editor-field{display:grid;gap:7px}\n.grading-partial{margin-top:11px}.grading-partial[hidden]{display:none!important}\n.grading-partial-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:9px}\n.grading-partial-grid label{display:grid;gap:5px;font-weight:700;font-size:11px}\n.grading-note{margin-top:12px}\n.tf-edit-list{display:grid;gap:10px;margin-top:10px}\n.tf-edit-row{display:grid;grid-template-columns:26px minmax(0,1fr) 104px 33px;align-items:center;gap:7px}\n.tf-edit-row input,.tf-edit-row select{min-width:0;width:100%;padding:10px 9px;border:1px solid var(--line);border-radius:9px;background:var(--paper,#fff);color:var(--ink,#222)}\n.tf-letter{font-weight:900;color:var(--violet,#ab7151)}\n.tf-actions{display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px}\n@media(max-width:700px){.grading-grid{grid-template-columns:1fr}.grading-partial-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.tf-edit-row{grid-template-columns:22px minmax(0,1fr) 82px 28px;gap:4px}.tf-edit-row input,.tf-edit-row select{padding:8px 5px;font-size:12px}}\n"},{"path":"css/base.css","type":"append","addition":"/* ExamLab V16: mobile-friendly true/false response grid and partial credit */\n.tf-answer-list{display:grid;gap:10px}\n.tf-answer-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px;border:1px solid var(--line);border-radius:13px;background:var(--paper,#fff)}\n.tf-answer-statement{display:flex;align-items:start;gap:8px;min-width:0;line-height:1.55;overflow-wrap:anywhere}\n.tf-answer-statement b{color:var(--violet,#bf7659);font-weight:900}\n.tf-answer-controls{display:flex;gap:7px}\n.tf-answer-controls label{display:flex;align-items:center;gap:6px;white-space:nowrap;padding:7px 10px;border:1px solid var(--line);border-radius:9px;cursor:pointer}\n.tf-answer-controls label:has(input:checked){background:var(--violetsoft,rgba(179,114,80,.12));border-color:var(--violet,#b47762)}\n.tf-answer-controls input{accent-color:var(--violet,#b47762);width:16px;height:16px}\n.grading-score-note{font-size:12px;margin:8px 0 12px;padding:8px 11px;border-radius:9px;background:var(--violetsoft,rgba(179,114,80,.09));color:var(--ink,#222)}\n.review-card.partial{border-color:#b99762}\n@media(max-width:610px){.tf-answer-row{grid-template-columns:1fr;gap:9px}.tf-answer-controls{justify-content:flex-end}.tf-answer-controls label{flex:1;justify-content:center}}\n"},{"path":"admin.html","type":"regex","new":"href=\"css/base.css?v=16.0\"","pattern":"href=\"css/base\\.css\\?v=[^\" ]+\""},{"path":"admin.html","type":"regex","new":"href=\"css/admin.css?v=16.0\"","pattern":"href=\"css/admin\\.css\\?v=[^\" ]+\""},{"path":"admin.html","type":"regex","new":"src=\"js/admin.js?v=16.0\"","pattern":"src=\"js/admin\\.js\\?v=[^\" ]+\""},{"path":"index.html","type":"regex","new":"href=\"css/base.css?v=16.0\"","pattern":"href=\"css/base\\.css\\?v=[^\" ]+\""},{"path":"index.html","type":"regex","new":"src=\"js/app.js?v=16.0\"","pattern":"src=\"js/app\\.js\\?v=[^\" ]+\""}]}</script><script>
+'use strict';
+const $=s=>document.querySelector(s),log=$('#log'),btn=$('#go');
+const recipe=JSON.parse($('#recipe').textContent);
+function fail(message){throw Error(message)}
+async function upgrade(){
+ const file=$('#repoZip').files[0];if(!file){log.textContent='Chọn ZIP repository GitHub trước nhé.';return}
+ btn.disabled=true;log.textContent='Đang đọc ZIP mã nguồn...';
+ try{
+  if(typeof JSZip==='undefined')fail('Không mở được jszip.min.js. Hãy giải nén cả bộ công cụ và mở lại.');
+  const input=await JSZip.loadAsync(file);
+  const keys=Object.keys(input.files);
+  const adminPath=keys.find(s=>!input.files[s].dir&&s.endsWith('/js/admin.js'))||keys.find(s=>s==='js/admin.js');
+  if(!adminPath)fail('Không tìm thấy js/admin.js. Hãy tải ZIP ở trang gốc repository (Code → Download ZIP).');
+  const prefix=adminPath.slice(0,-'js/admin.js'.length);
+  const paths=[...new Set(recipe.operations.map(x=>x.path))];
+  const content={};
+  for(const path of paths){const file=input.file(prefix+path);if(!file)fail('ZIP thiếu file '+prefix+path);content[path]=await file.async('string')}
+  for(const [idx,op] of recipe.operations.entries()){
+   let s=content[op.path];
+   if(op.type==='replace'){
+    const found=s.split(op.old).length-1;
+    if(found!==1)fail('Bản mã nguồn chưa tương thích: '+op.path+' (quy tắc '+(idx+1)+', số khớp '+found+'). Không file nào được tạo, hãy gửi ZIP GitHub để kiểm tra.');
+    s=s.replace(op.old,op.new);
+   }else if(op.type==='between'){
+    if(s.split(op.start).length-1!==1)fail('Không tìm thấy hàm gốc: '+op.path+' / '+op.start);
+    const i=s.indexOf(op.start),j=s.indexOf(op.end,i+op.start.length);
+    if(j<0)fail('Không tìm thấy điểm kết thúc hàm: '+op.path);
+    s=s.slice(0,i)+op.new+s.slice(j);
+   }else if(op.type==='regex'){
+    const re=new RegExp(op.pattern,'g'),hits=[...s.matchAll(re)];
+    if(hits.length!==1)fail('Không xác định được phiên bản tệp trong '+op.path+': '+op.pattern);
+    s=s.replace(re,()=>op.new);
+   }else if(op.type==='append')s+=String.fromCharCode(10)+op.addition;
+   else fail('Lệnh vá không hợp lệ: '+op.type);
+   content[op.path]=s;
+  }
+  const output=new JSZip();
+  for(const path of paths)output.file(path,content[path]);
+  output.file('data/MAU_DE_HON_HOP_V16.json',$('#sample').textContent);
+  output.file('HUONG_DAN_V16.txt',`EXAMLAB V16 – CÂU ĐÚNG/SAI VÀ CHẤM ĐIỂM
+
+1. Giải nén và tải toàn bộ nội dung ZIP này lên thư mục gốc của ExamLab-Main.
+2. Ghi đè admin.html, index.html, js/admin.js, js/app.js, css/admin.css, css/base.css.
+3. Giữ nguyên các file khác, nhất là supabase-config.js.
+4. Mở Admin, chọn đề, chọn Đúng/Sai 2-5 ý; chỉnh điểm từng dạng.
+5. Lưu đề trên Admin rồi bấm Xuất bản đề.
+6. Bài cũ tiếp tục hiển thị điểm đã chấm; thay đổi cấu hình chỉ tác động đến lượt thi mới.
+7. Dùng data/MAU_DE_HON_HOP_V16.json để thử nghiệm trước.
+
+Không cần chạy SQL; thuộc tính grading lưu trong payload của đề.
+`);
+  const blob=await output.generateAsync({type:'blob',compression:'DEFLATE',compressionOptions:{level:6}});
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='ExamLab_V16_6_File_Da_Sua.zip';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);
+  log.textContent='✓ Đã tạo ZIP với '+paths.length+' file sửa + đề mẫu. Giải nén, đưa đúng cấu trúc lên GitHub. Không ghi đè các file Supabase.';
+ }catch(err){console.error(err);log.textContent='Lỗi: '+(err.message||String(err));}
+ finally{btn.disabled=false}
+}
+btn.addEventListener('click',upgrade);
+</script><script type="application/json" id="sample">{
+  "format": "examlab.quiz.v1",
+  "id": "v16-mau-hon-hop-kiem-tra",
+  "title": "Mẫu V16 · Trắc nghiệm, Đúng/Sai và Trả lời ngắn",
+  "subject": "hoa",
+  "description": "Bộ đề mẫu để kiểm tra chấm điểm theo ba phần. Không phải đề kiểm tra chính thức.",
+  "durationMinutes": 15,
+  "grading": {
+    "points": {
+      "choice": 0.25,
+      "truefalse": 1,
+      "short": 0.5
+    },
+    "tfMode": "custom",
+    "tfPartial": [
+      0.1,
+      0.25,
+      0.5,
+      0.75
+    ]
+  },
+  "questions": [
+    {
+      "id": "mc-1",
+      "type": "single",
+      "text": "Nước có công thức hóa học là gì?",
+      "options": {
+        "A": "CO₂",
+        "B": "H₂O",
+        "C": "NH₃",
+        "D": "NaCl"
+      },
+      "answer": "B",
+      "explanation": "Công thức của nước là H₂O."
+    },
+    {
+      "id": "tf2",
+      "type": "truefalse",
+      "text": "Xét hai phát biểu về nước:",
+      "statements": [
+        "Nước có công thức H₂O.",
+        "Nước tinh khiết dẫn điện tốt như dung dịch muối."
+      ],
+      "answer": [
+        true,
+        false
+      ],
+      "explanation": "Nước có công thức H₂O; nước tinh khiết dẫn điện rất kém."
+    },
+    {
+      "id": "tf3",
+      "type": "truefalse",
+      "text": "Xét ba phát biểu về nguyên tử:",
+      "statements": [
+        "Hạt nhân nguyên tử có proton.",
+        "Electron mang điện tích dương.",
+        "Neutron không mang điện tích."
+      ],
+      "answer": [
+        true,
+        false,
+        true
+      ],
+      "explanation": "Proton dương, electron âm, neutron trung hòa."
+    },
+    {
+      "id": "tf4",
+      "type": "truefalse",
+      "text": "Xét bốn phát biểu về oxygen:",
+      "statements": [
+        "Oxygen là nguyên tố hóa học.",
+        "O₂ là phân tử oxygen.",
+        "Oxygen có số hiệu nguyên tử bằng 8.",
+        "O₂ là khí hiếm."
+      ],
+      "answer": [
+        true,
+        true,
+        true,
+        false
+      ],
+      "explanation": "Oxygen (Z = 8) là nguyên tố; O₂ là phân tử khí oxygen, không phải khí hiếm."
+    },
+    {
+      "id": "tf5",
+      "type": "truefalse",
+      "text": "Xét năm phát biểu về các chất phổ biến:",
+      "statements": [
+        "NaCl là muối ăn.",
+        "CO₂ là carbon dioxide.",
+        "H₂ là hydrogen.",
+        "Fe là kí hiệu của vàng.",
+        "CH₄ là methane."
+      ],
+      "answer": [
+        true,
+        true,
+        true,
+        false,
+        true
+      ],
+      "explanation": "Fe là iron (sắt); vàng là Au."
+    },
+    {
+      "id": "short-1",
+      "type": "short",
+      "text": "Phân tử nước có bao nhiêu nguyên tử hydrogen?",
+      "answer": "2",
+      "aliases": [
+        "02"
+      ],
+      "explanation": "H₂O có hai nguyên tử hydrogen."
+    }
+  ]
+}</script></body></html>
