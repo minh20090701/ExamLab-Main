@@ -187,7 +187,7 @@ function changeQuestionType(type){
  }
  q.aliases=[];markDirty();renderGradingConfig();renderQuestion();
 }
-  function questionTool(action){let i=state.selectedQ;const arr=state.draft.questions;if(i<0)return;
+  async function questionTool(action){let i=state.selectedQ;const arr=state.draft.questions;if(i<0)return;
   if(action==='remove'){if(!(await window.ExamLabDialog.confirm(`Câu ${i+1} sẽ bị xóa khỏi bộ đề đang soạn.`,{title:'Xóa câu hỏi',confirmText:'Xóa câu',danger:true})))return;arr.splice(i,1);state.selectedQ=Math.min(i,arr.length-1)}
   if(action==='duplicate'){const clone=structuredClone(arr[i]);clone.id=makeId('cau');arr.splice(i+1,0,clone);state.selectedQ=i+1}
   if(action==='up'&&i>0){[arr[i],arr[i-1]]=[arr[i-1],arr[i]];state.selectedQ=i-1}
