@@ -3,11 +3,20 @@
 (()=>{
  'use strict';
  const FORMAT='examlab.quiz.v1';
+/* EXAMLAB_V17_CATALOG */
+// Chỉ một nguồn xác định loại đề, ưu tiên lựa chọn lưu bởi Admin.
+function examlabDeckKind(deck){
+ if(deck?.kind==='practice'||deck?.kind==='mock')return deck.kind;
+ const name=String(deck?.title||'').toLocaleLowerCase('vi').normalize('NFC');
+ if(/ôn tập|luyện tập|chuyên đề|bài tập|100 câu|200 câu/.test(name))return 'practice';
+ return /thi thử|đề thi|mô phỏng|giữa kì|giữa kỳ|cuối kì|cuối kỳ|giữa học kì|giữa học kỳ|tốt nghiệp|thpt|khảo sát/.test(name)?'mock':'practice';
+}
+
  const SUBJECTS={toan:'Toán học',ly:'Vật lý',hoa:'Hóa học',sinh:'Sinh học'};
  const $=s=>document.querySelector(s);
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const makeId=prefix=>`${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2,8)}`;
- const state={banks:[],selected:null,draft:null,selectedQ:-1,dirty:false,filter:'all',search:'',db:null,visibility:new Map()};
+ const state={banks:[],selected:null,draft:null,selectedQ:-1,dirty:false,filter:'all',kindFilter:'all',search:'',db:null,visibility:new Map()};
  let toastTimer;
  function toast(msg,error=false){const e=$('#adminToast');e.textContent=msg;e.className=error?'show error':'show';clearTimeout(toastTimer);toastTimer=setTimeout(()=>{e.className=''},4200)}
  function dbOpen(){return new Promise((res,rej)=>{const r=indexedDB.open('examlab-db',1);r.onupgradeneeded=()=>{for(const name of ['banks','attempts','drafts','meta'])if(!r.result.objectStoreNames.contains(name))r.result.createObjectStore(name,{keyPath:'id'})};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})}
@@ -88,15 +97,15 @@ function normalizedLegacyWithTF(raw,legacyNormalizer){
  b.grading=normalizeGrading(raw.grading);
  return b;
 }
- function normalize(raw){return normalizedLegacyWithTF(raw,normalizeLegacy)}
+ function normalize(raw){const b=normalizedLegacyWithTF(raw,normalizeLegacy);b.kind=examlabDeckKind(raw);return b;}
  function refresh(){
   const banks=state.banks;
   $('#statBanks').textContent=banks.length;
   $('#statQuestions').textContent=banks.reduce((n,b)=>n+b.questions.length,0);
   $('#statDuration').textContent=banks.reduce((n,b)=>n+(Number(b.durationMinutes)||0),0);
   $('#statSubjects').textContent=new Set(banks.map(b=>b.subject)).size;
-  const rows=banks.filter(b=>(state.filter==='all'||state.filter===b.subject)&&(`${b.title} ${b.description}`.toLowerCase().includes(state.search))).sort((a,b)=>a.title.localeCompare(b.title,'vi'));
-  $('#bankList').innerHTML=rows.length?rows.map(b=>`<button type="button" class="admin-bank-row ${state.selected===b.id?'selected':''}" data-bank="${esc(b.id)}"><span class="bank-row-icon">${({toan:'∑',ly:'⚛',hoa:'⚗',sinh:'❀'})[b.subject]}</span><span class="bank-row-main"><b>${esc(b.title)}</b><small>${esc(SUBJECTS[b.subject])} · ${b.questions.length} câu · ${b.durationMinutes} phút · ${state.visibility.get(b.id)===false?'🔒 Đã ẩn':state.visibility.get(b.id)===true?'✓ Công khai':'◌ Chưa xuất bản'}</small></span><span class="bank-row-arrow">›</span></button>`).join(''):'<p class="admin-no-data">Chưa có bộ đề phù hợp. Bấm “Tạo đề” hoặc “Tải bộ đề lên” để bắt đầu.</p>';
+  const rows=banks.filter(b=>(state.filter==='all'||state.filter===b.subject)&&(state.kindFilter==='all'||examlabDeckKind(b)===state.kindFilter)&&(`${b.title} ${b.description}`.toLowerCase().includes(state.search))).sort((a,b)=>a.title.localeCompare(b.title,'vi'));
+  $('#bankList').innerHTML=rows.length?rows.map(b=>`<button type="button" class="admin-bank-row ${state.selected===b.id?'selected':''}" data-bank="${esc(b.id)}"><span class="bank-row-icon">${({toan:'∑',ly:'⚛',hoa:'⚗',sinh:'❀'})[b.subject]}</span><span class="bank-row-main"><b>${esc(b.title)}</b><small>${examlabDeckKind(b)==='mock'?'Đề thi mô phỏng':'Đề luyện tập'} · ${esc(SUBJECTS[b.subject])} · ${b.questions.length} câu · ${b.durationMinutes} phút · ${state.visibility.get(b.id)===false?'🔒 Đã ẩn':state.visibility.get(b.id)===true?'✓ Công khai':'◌ Chưa xuất bản'}</small></span><span class="bank-row-arrow">›</span></button>`).join(''):'<p class="admin-no-data">Chưa có bộ đề phù hợp. Bấm “Tạo đề” hoặc “Tải bộ đề lên” để bắt đầu.</p>';
   $('#publishNote').textContent=`${banks.length} bộ đề (${banks.reduce((n,b)=>n+b.questions.length,0)} câu) sẵn sàng xuất bản. Học sinh chỉ xem đáp án sau khi nộp bài.`;
  }
  async function ensureLeave(){return !state.dirty||await window.ExamLabDialog.confirm('Bạn có thay đổi chưa lưu trong bộ đề. Nếu tiếp tục, những thay đổi đó sẽ bị bỏ qua.',{title:'Bỏ thay đổi chưa lưu?',confirmText:'Bỏ thay đổi',danger:true})}
@@ -111,7 +120,7 @@ function normalizedLegacyWithTF(raw,legacyNormalizer){
   const b=state.draft;
   $('#adminEmpty').hidden=!!b;$('#editorUI').hidden=!b;
   if(!b)return;
-  $('#bankTitle').value=b.title;$('#bankSubject').value=b.subject;$('#bankDescription').value=b.description||'';$('#bankDuration').value=b.durationMinutes;
+  $('#bankTitle').value=b.title;$('#bankSubject').value=b.subject;$('#bankKind').value=examlabDeckKind(b);$('#bankDescription').value=b.description||'';$('#bankDuration').value=b.durationMinutes;
   const visible=state.visibility.get(b.id),toggle=$('#toggleBankVisibility');if(toggle){toggle.disabled=visible===undefined;toggle.textContent=visible===false?'👁 Hiện đề':visible===true?'🔒 Ẩn đề':'◌ Chưa xuất bản';toggle.title=visible===undefined?'Hãy xuất bản đề trước khi ẩn/hiện':'Đổi trạng thái công khai của đề trên Supabase';}
   $('#editorHeadline').textContent=b.title||'Đề mới';$('#editStatus').textContent=state.dirty?'● Có thay đổi chưa lưu':'✓ Đã lưu trên thiết bị';$('#editStatus').classList.toggle('unsaved',state.dirty);
   renderGradingConfig();refreshQuestions();
@@ -143,6 +152,11 @@ function renderGradingConfig(){
   <div class="grading-tf-box"><label class="editor-field">Chấm Đúng/Sai theo từng ý<select data-grade-mode><option value="linear" ${g.tfMode==='linear'?'selected':''}>Theo tỉ lệ số ý đúng (ví dụ 3/4 = 75%)</option><option value="all" ${g.tfMode==='all'?'selected':''}>Đúng tất cả mới có điểm</option><option value="custom" ${g.tfMode==='custom'?'selected':''}>Điểm một phần tùy chỉnh</option></select></label>
   <div class="grading-partial" ${g.tfMode==='custom'?'':'hidden'}><p>Tỉ lệ điểm khi chưa đúng hết các ý; khi đúng đủ luôn nhận 100%.</p><div class="grading-partial-grid">${[1,2,3,4].map((n,i)=>`<label>Đúng ${n} ý<input type="number" min="0" max="100" step="1" data-grade-partial="${i}" value="${Math.round(g.tfPartial[i]*100)}">%</label>`).join('')}</div></div></div>
   <p class="grading-note">Tổng điểm tối đa hiện tại: <strong>${Number(max.toFixed(2))}</strong> điểm thô cho ${b.questions.length} câu. Bài làm được quy đổi về 10 điểm; chế độ trộn câu cũng tính theo các câu được chọn.</p></section>`;
+ if(examlabDeckKind(b)==='mock'){
+   const report='Cấu trúc hiện tại: '+count.choice+' trắc nghiệm, '+count.truefalse+' Đúng/Sai, '+count.short+' trả lời ngắn · '+b.durationMinutes+' phút.';
+   const reference=b.subject==='ly'?' Ví dụ đề Vật lí 12 trong tài liệu mẫu: 18 / 4 / 6 câu, 50 phút; hãy đối chiếu yêu cầu của kỳ thi cụ thể.':'';
+   root.insertAdjacentHTML('beforeend','<p class="admin-warning">'+report+reference+'</p>');
+ }
 }
 function changeGradingField(t){
  const b=state.draft;if(!b)return false;
@@ -194,9 +208,9 @@ function changeQuestionType(type){
   if(action==='down'&&i<arr.length-1){[arr[i],arr[i+1]]=[arr[i+1],arr[i]];state.selectedQ=i+1}
   markDirty();refreshQuestions();
  }
- function updateBankField(e){const b=state.draft;if(!b)return;const fields={bankTitle:'title',bankSubject:'subject',bankDescription:'description',bankDuration:'durationMinutes'};const key=fields[e.target.id];if(!key)return;b[key]=key==='durationMinutes'?Number(e.target.value):e.target.value;markDirty()}
+ function updateBankField(e){const b=state.draft;if(!b)return;const fields={bankTitle:'title',bankSubject:'subject',bankKind:'kind',bankDescription:'description',bankDuration:'durationMinutes'};const key=fields[e.target.id];if(!key)return;b[key]=key==='durationMinutes'?Number(e.target.value):e.target.value;markDirty()}
  async function saveBank(){try{const b=normalize(state.draft);await dbAction('save',b);const i=state.banks.findIndex(v=>v.id===b.id);if(i<0)state.banks.push(b);else state.banks[i]=b;state.draft=structuredClone(b);state.selected=b.id;state.dirty=false;renderEditor();refresh();toast(`Đã lưu “${b.title}” · ${b.questions.length} câu`)}catch(e){toast(e.message,true)}}
- async function newBank(){if(!(await ensureLeave()))return;const b={format:FORMAT,id:makeId('de'),title:'',subject:'hoa',description:'',durationMinutes:60,questions:[],grading:normalizeGrading(null)};state.draft=b;state.selected=b.id;state.selectedQ=-1;state.dirty=true;renderEditor();refresh();$('#bankTitle').focus()}
+ async function newBank(){if(!(await ensureLeave()))return;const b={format:FORMAT,id:makeId('de'),title:'',subject:'hoa',description:'',durationMinutes:60,kind:'practice',questions:[],grading:normalizeGrading(null)};state.draft=b;state.selected=b.id;state.selectedQ=-1;state.dirty=true;renderEditor();refresh();$('#bankTitle').focus()}
  let deletingBank=false;
  async function deleteBank(){
   if(deletingBank||!state.draft)return;
@@ -451,11 +465,12 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
  $('#templateTrigger').addEventListener('click',template);
  $('#bankSearch').addEventListener('input',e=>{state.search=e.target.value.toLowerCase().trim();refresh()});
  $('#subjectFilter').addEventListener('change',e=>{state.filter=e.target.value;refresh()});
+ $('#kindFilter')?.addEventListener('change',e=>{state.kindFilter=e.target.value;refresh()});
  $('#bankList').addEventListener('click',e=>{const row=e.target.closest('[data-bank]');if(row)selectBank(row.dataset.bank)});
  $('#questionList').addEventListener('click',e=>{const row=e.target.closest('[data-selectq]');if(row){state.selectedQ=Number(row.dataset.selectq);refreshQuestions()}});
  $('#gradingConfig')?.addEventListener('input',e=>changeGradingField(e.target));
  $('#gradingConfig')?.addEventListener('change',e=>{if(e.target.matches('[data-grade-point],[data-grade-partial]'))renderGradingConfig();else changeGradingField(e.target)});
- $('#editorUI').addEventListener('input',e=>{if(['bankTitle','bankSubject','bankDescription','bankDuration'].includes(e.target.id))updateBankField(e);else updateQuestionValue(e.target)});
+ $('#editorUI').addEventListener('input',e=>{if(['bankTitle','bankSubject','bankKind','bankDescription','bankDuration'].includes(e.target.id))updateBankField(e);else updateQuestionValue(e.target)});
  $('#editorUI').addEventListener('change',async e=>{const t=e.target,q=state.draft?.questions[state.selectedQ];if(!q)return;if(t.id==='qType')return changeQuestionType(t.value);if(t.dataset.tfcorrect!==undefined){updateQuestionValue(t);return;}if(t.id==='qImageInput')return addImages(t);if(t.name==='correctOption'){if(q.type==='multiple'){const s=new Set(Array.isArray(q.answer)?q.answer:[]);t.checked?s.add(t.value):s.delete(t.value);q.answer=[...s].sort()}else q.answer=t.value;markDirty()}});
  $('#questionDetails').addEventListener('click',e=>{const tool=e.target.closest('[data-qtool]');if(tool)questionTool(tool.dataset.qtool);const img=e.target.closest('[data-remove-image]');if(img){state.draft.questions[state.selectedQ].images.splice(Number(img.dataset.removeImage),1);markDirty();renderQuestion()}});
  $('#questionDetails').addEventListener('click',e=>{

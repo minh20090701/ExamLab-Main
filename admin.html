@@ -16,6 +16,7 @@
 <link href="css/mode-switch-v7.css?v=7" rel="stylesheet"/>
 <link href="css/header-stable-v10.css?v=10.1" rel="stylesheet"/>
 <link rel="stylesheet" href="css/header-full-v13.css?v=13.0"><link rel="stylesheet" href="css/examlab-dialogs-v14.css?v=14.0">
+<link rel="stylesheet" href="css/catalog-v17.css?v=17.1">
 </head>
 <body class="admin-page">
 <header class="topbar admin-topbar"><div class="topbar-inner">
@@ -29,15 +30,15 @@
 <div class="admin-warning" role="note"><strong>Quản lý đề thi trực tuyến.</strong> </div>
 <section aria-label="Thống kê thư viện" class="admin-stat-row"><div class="admin-stat"><span aria-hidden="true">▣</span><strong id="statBanks">0</strong><small>Bộ đề</small></div><div class="admin-stat"><span aria-hidden="true">✎</span><strong id="statQuestions">0</strong><small>Tổng câu hỏi</small></div><div class="admin-stat"><span aria-hidden="true">◷</span><strong id="statDuration">0</strong><small>Phút kiểm tra</small></div><div class="admin-stat"><span aria-hidden="true">✦</span><strong id="statSubjects">0</strong><small>Môn có đề</small></div></section>
 <section aria-label="Quản lý đề thi" class="admin-workspace">
-<div class="admin-panel admin-library" id="adminLibrary"><div class="admin-panel-head"><div><span class="eyebrow">TỦ ĐỀ</span><h2>Danh sách bài ôn tập</h2></div><button class="btn btn-primary btn-sm" id="newBank">＋ Tạo đề</button></div>
-<div class="admin-toolbar"><label class="sr-only" for="bankSearch">Tìm đề</label><input id="bankSearch" placeholder="⌕ Tìm tên đề..." type="search"/><label class="sr-only" for="subjectFilter">Lọc môn học</label><select id="subjectFilter"><option value="all">Tất cả môn</option><option value="toan">Toán</option><option value="ly">Vật lý</option><option value="hoa">Hóa học</option><option value="sinh">Sinh học</option></select></div>
+<div class="admin-panel admin-library" id="adminLibrary"><div class="admin-panel-head"><div><span class="eyebrow">TỦ ĐỀ</span><h2>Danh sách bộ đề</h2></div><button class="btn btn-primary btn-sm" id="newBank">＋ Tạo đề</button></div>
+<div class="admin-toolbar"><label class="sr-only" for="bankSearch">Tìm đề</label><input id="bankSearch" placeholder="⌕ Tìm tên đề..." type="search"/><label class="sr-only" for="subjectFilter">Lọc môn học</label><select id="subjectFilter"><option value="all">Tất cả môn</option><option value="toan">Toán</option><option value="ly">Vật lý</option><option value="hoa">Hóa học</option><option value="sinh">Sinh học</option></select><label class="sr-only" for="kindFilter">Lọc loại đề</label><select id="kindFilter"><option value="all">Mọi loại đề</option><option value="practice">Đề luyện tập</option><option value="mock">Đề thi mô phỏng</option></select></div>
 <div aria-live="polite" class="admin-bank-list" id="bankList"></div>
 <div class="admin-library-footer"><button class="btn btn-ghost btn-wide" id="reloadPublished" type="button">↻ Làm mới thư viện đề</button><button class="btn btn-primary btn-wide" id="importTrigger" type="button">⇧ Tải bộ đề lên</button><button class="btn btn-ghost btn-wide" id="templateTrigger">⇩ Tải định dạng mẫu</button></div>
 <p class="admin-import-hint" id="cloudSyncStatus" role="status">Đang kiểm tra thư viện đề…</p><p class="admin-import-hint">Chọn tệp hoặc gói đề từ thiết bị. Xem trước và chọn đề cần lưu trước khi phát hành.</p>
 </div>
-<div class="admin-panel admin-editor-shell" id="editorShell"><div class="admin-empty" id="adminEmpty"><span class="admin-empty-icon">✒</span><h2>Chọn một bộ đề để biên soạn</h2><p>Chọn đề từ danh sách bên trái hoặc tạo mới. Có thể thêm từng câu, trắc nghiệm một đáp án, nhiều đáp án và câu trả lời ngắn.</p></div>
+<div class="admin-panel admin-editor-shell" id="editorShell"><div class="admin-empty" id="adminEmpty"><span class="admin-empty-icon">✒</span><h2>Chọn một bộ đề để biên soạn</h2><p>Chọn đề hoặc tạo mới, phân loại luyện tập/mô phỏng rồi biên soạn trắc nghiệm, Đúng/Sai và trả lời ngắn.</p></div>
 <div hidden="" id="editorUI"><div class="admin-panel-head admin-edit-heading"><div><span class="eyebrow">BIÊN SOẠN ĐỀ THI</span><h2 id="editorHeadline">Bộ đề</h2><p id="editStatus">Những thay đổi chưa được lưu</p></div><div class="editor-head-actions"><button class="btn btn-ghost btn-sm" id="previewBank">◉ Xem thử</button><button class="btn btn-ghost btn-sm" disabled="" id="toggleBankVisibility" type="button">◌ Chưa xuất bản</button><button class="btn btn-primary btn-sm" id="saveBank">✓ Lưu đề</button></div></div>
-<div class="admin-detail-body"><div class="admin-meta-grid"><label>Tên bài ôn tập <b>*</b><input autocomplete="off" id="bankTitle" maxlength="150" placeholder="Ví dụ: Kiểm tra Hóa 12 - Este, Lipit" type="text"/></label><label>Môn học <b>*</b><select id="bankSubject"><option value="toan">Toán học</option><option value="ly">Vật lý</option><option value="hoa">Hóa học</option><option value="sinh">Sinh học</option></select></label><label>Thời gian (phút) <b>*</b><input id="bankDuration" max="300" min="1" type="number" value="60"/></label><label class="span-full">Giới thiệu / ghi chú<textarea id="bankDescription" placeholder="Nội dung và phạm vi kiến thức..." rows="2"></textarea></label></div>
+<div class="admin-detail-body"><div class="admin-meta-grid"><label>Loại bộ đề <b>*</b><select id="bankKind"><option value="practice">Đề luyện tập</option><option value="mock">Đề thi mô phỏng</option></select></label><label>Tên bộ đề <b>*</b><input autocomplete="off" id="bankTitle" maxlength="150" placeholder="Ví dụ: Kiểm tra Hóa 12 - Este, Lipit" type="text"/></label><label>Môn học <b>*</b><select id="bankSubject"><option value="toan">Toán học</option><option value="ly">Vật lý</option><option value="hoa">Hóa học</option><option value="sinh">Sinh học</option></select></label><label>Thời gian (phút) <b>*</b><input id="bankDuration" max="300" min="1" type="number" value="60"/></label><label class="span-full">Giới thiệu / ghi chú<textarea id="bankDescription" placeholder="Nội dung và phạm vi kiến thức..." rows="2"></textarea></label></div>
 <div id="gradingConfig" aria-label="Cấu hình chấm điểm"></div>
 <div class="question-section-heading"><div><span class="eyebrow">NGÂN HÀNG CÂU HỎI</span><h3><span id="questionCount">0</span> câu trong đề</h3></div><button class="btn btn-ghost btn-sm" id="addQuestion">＋ Thêm câu</button></div>
 <div class="question-workspace"><div class="question-index"><div class="admin-question-list" id="questionList"></div></div><div class="question-details" id="questionDetails"><div class="admin-empty inner"><span class="admin-empty-icon">✎</span><b>Chọn một câu bên trái</b><p>Nhập nội dung, đáp án và lời giải ở đây.</p></div></div></div>
@@ -56,7 +57,7 @@
 <script src="supabase-config.js"></script>
 <script src="js/supabase-client.js?v=6"></script>
 <script src="js/mfa-route-guard.js?v=8"></script>
-<script src="js/admin-auth.js?v=6"></script><script src="js/role-visibility.js?v=13.0"></script><script src="js/jszip.min.js?v=6"></script><script src="js/admin.js?v=16.2"></script>
+<script src="js/admin-auth.js?v=6"></script><script src="js/role-visibility.js?v=13.0"></script><script src="js/jszip.min.js?v=6"></script><script src="js/admin.js?v=17.1"></script>
 <script src="js/visible-profile-name.js?v=8"></script>
 </body>
 </html>
