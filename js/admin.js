@@ -259,20 +259,44 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
   if(state.dirty){toast('Hãy lưu thay đổi trước khi phát hành.',true);return}
   try{
    const db=window.ExamLabSupabase;if(!db)throw Error(window.ExamLabSupabaseError||'Chưa kết nối hệ thống');
-   // Lấy trực tiếp trạng thái Supabase để không vô tình hiện lại các đề đã ẩn.
+   // Luôn tra cứu trên máy chủ để không tự bật lại các đề đã ẩn.
    const statuses=await readVisibilityStatuses(db);state.visibility=statuses;
    const removedIds=await readRemovedIds(db);
    const all=state.banks.map(normalize);
    if(!all.length)throw Error('Không có đề nào để phát hành.');
-   let count=0,hiddenSkipped=0,removedSkipped=0;
+
+   // Chỉ khôi phục các đề đã xóa khi Admin CHỦ ĐỘNG xác nhận.
+   // Đề chưa xác nhận tiếp tục bị chặn, không tự hồi sinh từ cache cũ.
+   const candidates=all.filter(b=>removedIds.has(String(b.id)));
+   let approvedRestore=new Set();
+   if(candidates.length){
+    const titles=candidates.slice(0,8).map(b=>'• '+b.title).join('\n');
+    const extra=candidates.length>8?`\n... và ${candidates.length-8} đề khác`:'';
+    const message=`Tìm thấy ${candidates.length} đề đã bị xóa nhưng đã được tải lại vào thư viện trên máy:\n${titles}${extra}\n\nBạn có muốn KHÔI PHỤC và XUẤT BẢN các đề này không?\nCác đề đang ẩn sẽ được giữ nguyên.`;
+    const accepted=window.ExamLabDialog?.confirm
+     ? await window.ExamLabDialog.confirm(message,{title:'Khôi phục đề đã xóa?',confirmText:'Khôi phục & xuất bản',danger:false})
+     :window.confirm(message);
+    if(accepted)approvedRestore=new Set(candidates.map(b=>String(b.id)));
+   }
+
+   let count=0,hiddenSkipped=0,removedSkipped=0,restored=0;
    for(const b of all){
-    if(removedIds.has(String(b.id))){removedSkipped++;continue}
-    if(statuses.get(b.id)===false){hiddenSkipped++;continue}
+    const previouslyRemoved=removedIds.has(String(b.id));
+    if(previouslyRemoved&&!approvedRestore.has(String(b.id))){removedSkipped++;continue}
+    if(!previouslyRemoved&&statuses.get(b.id)===false){hiddenSkipped++;continue}
     const {error}=await db.from('examlab_decks').upsert({id:b.id,title:b.title,subject:b.subject,payload:b,published:true,updated_at:new Date().toISOString()},{onConflict:'id'});
-    if(error)throw error;count++;state.visibility.set(b.id,true);
+    if(error)throw error;
+    if(previouslyRemoved){
+     // Upsert thành công RỒI mới bỏ dấu đã xóa, tránh lộ đề không tồn tại.
+     const {data,error:restoreError}=await db.rpc('examlab_admin_restore_deleted_deck',{p_deck_id:String(b.id)});
+     if(restoreError)throw Error('Đã tải lại đề “'+b.title+'”, nhưng chưa mở khóa ID đã xóa: '+restoreError.message+' (chạy SETUP_REUPLOAD_DELETED_V17_2.sql).');
+     if(data!==true)throw Error('Không xác nhận được khôi phục đề “'+b.title+'”. Vui lòng tải lại Admin và thử lại.');
+     removedIds.delete(String(b.id));restored++;
+    }
+    count++;state.visibility.set(b.id,true);
    }
    refresh();renderEditor();
-   toast(`Đã xuất bản ${count} bộ đề.${hiddenSkipped?' Giữ nguyên '+hiddenSkipped+' đề đang ẩn.':''}${removedSkipped?' Bỏ qua '+removedSkipped+' đề đã xóa.':''}`);
+   toast(`Đã xuất bản ${count} bộ đề.${restored?' Đã khôi phục '+restored+' đề từng xóa.':''}${hiddenSkipped?' Giữ nguyên '+hiddenSkipped+' đề đang ẩn.':''}${removedSkipped?' Tiếp tục bỏ qua '+removedSkipped+' đề đã xóa.':''}`);
   }catch(e){toast('Không phát hành được: '+e.message,true)}
  }
  async function toggleBankVisibility(){
