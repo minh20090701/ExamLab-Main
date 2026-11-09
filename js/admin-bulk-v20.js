@@ -1,4 +1,4 @@
-/* ExamLab V20 – batch edits/deletion, V19 lazy metadata-compatible. */
+/* ExamLab V20.1 – batch edits/deletion, all three question scoring groups. */
 (()=>{
  'use strict';
  const api=window.ExamLabV20AdminApi;
@@ -12,7 +12,7 @@
  section.setAttribute('aria-label','Chỉnh sửa và xóa đề hàng loạt');
  section.innerHTML=`<div class="v20-bulk-heading"><div><strong>QUẢN LÝ HÀNG LOẠT</strong><small>Chọn nhiều bộ đề, chỉnh sửa hoặc xóa cùng lúc</small></div><button id="v20BulkToggle" type="button" class="btn btn-ghost btn-sm">Chọn nhiều đề</button></div>
  <div id="v20BulkTools" hidden><div class="v20-bulk-selection"><span id="v20BulkCount" role="status">0 đề được chọn</span><button id="v20SelectFiltered" type="button" class="btn btn-ghost btn-sm">Chọn tất cả trong bộ lọc</button><button id="v20ClearSelected" type="button" class="btn btn-ghost btn-sm">Bỏ chọn</button></div>
- <div class="v20-bulk-actions"><button type="button" class="btn btn-ghost btn-sm" data-v20-action="minutes">Đổi thời gian</button><button type="button" class="btn btn-ghost btn-sm" data-v20-action="description">Xóa hết giới thiệu</button><button type="button" class="btn btn-ghost btn-sm" data-v20-action="grading">Điểm Đúng/Sai</button><button type="button" class="btn btn-danger btn-sm" data-v20-action="delete">Xóa đề đã chọn</button></div>
+ <div class="v20-bulk-actions"><button type="button" class="btn btn-ghost btn-sm" data-v20-action="minutes">Đổi thời gian</button><button type="button" class="btn btn-ghost btn-sm" data-v20-action="description">Xóa hết giới thiệu</button><button type="button" class="btn btn-ghost btn-sm" data-v20-action="grading">Điểm Đúng/Sai</button><button type="button" class="btn btn-ghost btn-sm" data-v20-action="grading_choice">Điểm trắc nghiệm</button><button type="button" class="btn btn-ghost btn-sm" data-v20-action="grading_short">Điểm trả lời ngắn</button><button type="button" class="btn btn-danger btn-sm" data-v20-action="delete">Xóa đề đã chọn</button></div>
  <div id="v20BulkProgress" class="v20-bulk-progress" role="status" aria-live="polite" hidden><div class="v20-progress-label"><span id="v20ProgressText">Đang xử lý…</span><strong id="v20ProgressPct">0%</strong></div><div class="v20-progress-track"><div id="v20ProgressFill"></div></div></div>
  <small class="v20-bulk-tip">Chỉnh sửa được lưu dưới dạng bản nháp Admin. Bấm <b>Xuất bản đề</b> để cập nhật cho học sinh. Xóa đề tác động lên Supabase ngay sau khi xác nhận.</small></div>`;
  const library=$('#adminLibrary');const toolbar=library?.querySelector('.admin-toolbar');
@@ -84,6 +84,14 @@
    <div id="v20TFPartial" class="v20-partial-grid" hidden>${[1,2,3,4].map((v,i)=>`<label>Đúng ${v} ý (% điểm tối đa)<input type="number" data-partial="${i}" min="0" max="100" step="1" value="${[10,25,50,75][i]}"></label>`).join('')}</div>`;
    $('#v20TFMode').addEventListener('change',e=>{$('#v20TFPartial').hidden=e.target.value!=='custom'});
    tip.textContent='Đặt cùng điểm cho mỗi câu Đ/S trong các đề được chọn. Có thể sửa điểm từng câu riêng trong trang biên soạn. Thang điểm cuối vẫn quy đổi về 10.';button.textContent='Lưu thang điểm';
+  }else if(action==='grading_choice'||action==='grading_short'){
+   const tn=action==='grading_choice';
+   const label=tn?'Trắc nghiệm (chọn một hoặc nhiều đáp án)':'Trả lời ngắn';
+   title.textContent='Chỉnh điểm '+label+' hàng loạt';
+   intro.textContent=`Đặt điểm cho mỗi câu ${label} trong ${count} bộ đề được chọn. Các đề không có loại câu này được bỏ qua.`;
+   fields.innerHTML=`<label class="v20-modal-label">Điểm tối đa cho mỗi câu ${label}<input id="v20OtherPoints" type="number" min="0.01" max="100" step="0.01" required value="1"></label>`;
+   tip.textContent='Chỉ đổi điểm cho câu thuộc loại đã chọn; các phần khác giữ nguyên. Sau khi lưu nháp, cần bấm Xuất bản đề. Điểm cuối vẫn quy đổi về thang 10.';
+   button.textContent='Lưu điểm '+(tn?'TN':'TLN');
   }else if(action==='delete'){
    title.textContent='Xóa đề hàng loạt trên Supabase';intro.textContent=`Bạn sắp xóa ${count} đề. Đây là thao tác nguy hiểm và sẽ gỡ đề khỏi thư viện học sinh.`;
    fields.innerHTML='<p class="v20-modal-examples">'+namesOf(selection).map(htmlSafe).join(' · ')+'</p>'+
@@ -102,6 +110,11 @@
    const mode=$('#v20TFMode').value;let partial=null;
    if(mode==='custom')partial=[...modal.querySelectorAll('[data-partial]')].map(el=>{const num=Number(el.value);if(!el.value.trim()||!Number.isFinite(num)||num<0||num>100)throw Error('Phần trăm điểm đúng từng ý phải từ 0 đến 100.');return num/100});
    return {points:n,mode,partial};
+  }
+  if(action==='grading_choice'||action==='grading_short'){
+   const input=$('#v20OtherPoints');const n=Number(input.value);
+   if(!input.value.trim()||!Number.isFinite(n)||n<0.01||n>100)throw Error('Điểm mỗi câu phải từ 0,01 đến 100.');
+   return {points:n};
   }
   if(action==='delete'){const required=`XOA ${ids().length}`;if($('#v20ConfirmDelete').value.trim()!==required)throw Error('Chưa xác nhận xóa đúng số đề.');return {}}
   return {};
@@ -136,6 +149,14 @@
        full.grading.points.truefalse=cfg.points;
        if(cfg.mode!=='keep'){full.grading.tfMode=cfg.mode;if(cfg.mode==='custom')full.grading.tfPartial=cfg.partial}
        tf.forEach(q=>{q.points=cfg.points});
+      }
+      else if(action==='grading_choice'||action==='grading_short'){
+       const tn=action==='grading_choice';
+       const affected=full.questions.filter(q=>tn?(q.type==='single'||q.type==='multiple'):q.type==='short');
+       if(!affected.length){skipped.push(id);continue}
+       if(!full.grading)full.grading=api.normalizeGrading(null);
+       full.grading.points[tn?'choice':'short']=cfg.points;
+       affected.forEach(q=>{q.points=cfg.points});
       }
       const valid=api.normalize(full);
       await api.dbAction('save',valid);

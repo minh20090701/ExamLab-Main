@@ -95,7 +95,15 @@ function normalizedLegacyWithTF(raw,legacyNormalizer){
  const proxy={...raw,questions:raw.questions.map(q=>q?.type==='truefalse'
    ? {...q,type:'short',answer:'Đúng',options:undefined,aliases:[]} : q)};
  const b=legacyNormalizer(proxy);
- b.questions=raw.questions.map((q,i)=>q?.type==='truefalse'?normalizeTFQuestion(q,i):b.questions[i]);
+ /* EXAMLAB_V201_ALL_POINTS */
+ b.questions=raw.questions.map((q,i)=>{
+  const item=q?.type==='truefalse'?normalizeTFQuestion(q,i):b.questions[i];
+  if(q?.points!==undefined&&q?.points!==null&&q.points!==''){
+   const n=Number(q.points);if(!Number.isFinite(n)||n<0.01||n>100)throw Error(`Câu ${i+1}: điểm riêng phải từ 0,01 đến 100`);
+   item.points=n;
+  }
+  return item;
+ });
  b.grading=normalizeGrading(raw.grading);
  return b;
 }
@@ -203,7 +211,10 @@ function renderGradingConfig(){
  b.grading=g;
  const count={choice:0,truefalse:0,short:0};
  b.questions.forEach(q=>count[q.type==='truefalse'?'truefalse':q.type==='short'?'short':'choice']++);
- const max=count.choice*g.points.choice+count.short*g.points.short+b.questions.filter(q=>q.type==='truefalse').reduce((sum,q)=>sum+(typeof q.points==='number'&&Number.isFinite(q.points)?q.points:g.points.truefalse),0);
+ const max=b.questions.reduce((sum,q)=>{
+  const own=q?.points;const fallback=q.type==='truefalse'?g.points.truefalse:q.type==='short'?g.points.short:g.points.choice;
+  return sum+(own!==undefined&&own!==null&&own!==''&&Number.isFinite(Number(own))&&Number(own)>=0.01&&Number(own)<=100?Number(own):fallback);
+ },0);
  const kinds=[['choice','Trắc nghiệm (chọn 1/nhiều)'],['truefalse','Đúng/Sai (2–5 ý)'],['short','Trả lời ngắn']];
  root.innerHTML=`<section class="grading-editor"><div class="grading-head"><div><h3>⚖ Cấu hình chấm điểm</h3><p>Admin quyết định điểm tối đa của mỗi câu theo phần; hệ thống cộng điểm rồi quy đổi về thang 10.</p></div><span class="grading-tag">THANG 10</span></div>
   <div class="grading-grid">${kinds.map(([key,label])=>`<label>${label}<input type="number" min="0.01" max="100" step="0.01" data-grade-point="${key}" value="${g.points[key]}"><small>${count[key]} câu × ${g.points[key]} điểm</small></label>`).join('')}</div>
@@ -236,14 +247,15 @@ function changeGradingField(t){
    <label class="editor-field">Loại câu hỏi<select id="qType"><option value="short" ${q.type==='short'?'selected':''}>Điền đáp án ngắn</option><option value="single" ${q.type==='single'?'selected':''}>Trắc nghiệm · chọn một</option><option value="multiple" ${q.type==='multiple'?'selected':''}>Trắc nghiệm · chọn nhiều</option><option value="truefalse" ${q.type==='truefalse'?'selected':''}>Đúng / Sai · 2–5 ý</option></select></label>
    <label class="editor-field">Nội dung câu hỏi <b>*</b><textarea id="qText" rows="5" placeholder="Nhập nội dung câu hỏi; có thể xuống dòng...">${esc(q.text)}</textarea></label>
    <details class="advanced-editor"><summary>Nội dung nâng cao: bảng / công thức HTML có sẵn</summary><p>Nếu điền, phần HTML được ưu tiên hiển thị trước văn bản. Hệ thống chỉ cho phép thẻ an toàn, không chạy mã JavaScript.</p><textarea id="qHtml" rows="4" placeholder="Dán phần HTML của công thức/bảng nếu cần">${esc(q.contentHtml||'')}</textarea></details>
-   ${q.type==='truefalse'?tfEditorHtml(q)+`<label class="editor-field">Điểm riêng tối đa cho câu Đúng/Sai (để trống = điểm mặc định)<input id="qTfPoints" type="number" min="0.01" max="100" step="0.01" placeholder="Điểm mặc định" value="${esc(q.points??'')}"></label>`:choice?`<div class="editor-field"><div class="field-heading">Các phương án <small>Đánh dấu phương án đúng bằng ô tròn/ô vuông</small></div><div class="options-editor">${opts}</div></div>`:`<label class="editor-field">Đáp án đúng <b>*</b><input id="qShortAnswer" type="text" value="${esc(q.answer||'')}" placeholder="Ví dụ: 42 hoặc 2,5"></label><label class="editor-field">Đáp án khác được chấp nhận (cách nhau bởi dấu chấm phẩy)<input id="qAliases" type="text" value="${esc((q.aliases||[]).join('; '))}" placeholder="Ví dụ: 2.5; 5/2"></label>`}
+   ${q.type==='truefalse'?tfEditorHtml(q):choice?`<div class="editor-field"><div class="field-heading">Các phương án <small>Đánh dấu phương án đúng bằng ô tròn/ô vuông</small></div><div class="options-editor">${opts}</div></div>`:`<label class="editor-field">Đáp án đúng <b>*</b><input id="qShortAnswer" type="text" value="${esc(q.answer||'')}" placeholder="Ví dụ: 42 hoặc 2,5"></label><label class="editor-field">Đáp án khác được chấp nhận (cách nhau bởi dấu chấm phẩy)<input id="qAliases" type="text" value="${esc((q.aliases||[]).join('; '))}" placeholder="Ví dụ: 2.5; 5/2"></label>`}
+   <label class="editor-field">Điểm tối đa riêng cho câu ${q.type==='truefalse'?'Đúng/Sai':q.type==='short'?'Trả lời ngắn':'Trắc nghiệm'} (để trống = điểm của phần)<input id="qQuestionPoints" type="number" min="0.01" max="100" step="0.01" placeholder="Điểm mặc định" value="${esc(q.points??'')}"></label>
    <label class="editor-field">Lời giải chi tiết <b>*</b><textarea id="qExplanation" rows="5" placeholder="Giải thích lý do chọn đáp án, trình bày phép tính...">${esc(q.explanation||'')}</textarea></label>
    <div class="image-editor"><div class="field-heading">Hình minh họa <small>PNG/JPG/WebP/GIF, tối đa 1.5 MB mỗi ảnh</small></div><div class="uploaded-images">${(q.images||[]).filter(src=>typeof src==='string'&&/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(src)).map((src,i)=>`<div class="uploaded-image"><img src="${src}" alt="Hình minh họa ${i+1}"><button type="button" data-remove-image="${i}" aria-label="Xóa ảnh">×</button></div>`).join('')}</div><label class="btn btn-ghost btn-sm upload-image-label">＋ Thêm ảnh<input id="qImageInput" type="file" accept="image/png,image/jpeg,image/webp,image/gif" hidden></label></div>
    <div class="question-footnote">✦ Đáp án và lời giải chỉ hiển thị cho người học sau khi nộp bài kiểm tra.</div>`;
  }
  async function addImages(input){const f=input.files?.[0];if(!f)return;if(!/^image\/(png|jpeg|webp|gif)$/.test(f.type)||f.size>1.5*1024*1024) return toast('Chỉ chọn ảnh PNG/JPG/WebP/GIF ≤ 1,5 MB',true);const src=await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=()=>rej(r.error);r.readAsDataURL(f)});state.draft.questions[state.selectedQ].images.push(src);markDirty();renderQuestion();toast('Đã thêm hình minh họa')}
  function updateQuestionValue(target){const q=state.draft?.questions[state.selectedQ];if(!q)return;
-  if(target.id==='qTfPoints'){const raw=target.value.trim();if(!raw){delete q.points;markDirty();renderGradingConfig();return}const n=Number(raw);if(Number.isFinite(n)&&n>=0.01&&n<=100){q.points=n;markDirty();renderGradingConfig()}return}
+  if(target.id==='qQuestionPoints'){const raw=target.value.trim();if(!raw){delete q.points;markDirty();renderGradingConfig();return}q.points=Number(raw);markDirty();renderGradingConfig();return}
   if(target.dataset.tftext!==undefined){q.statements[Number(target.dataset.tftext)]=target.value;markDirty();return;}
   if(target.dataset.tfcorrect!==undefined){q.answer[Number(target.dataset.tfcorrect)]=target.value==='true';markDirty();return;}
   switch(target.id){case 'qText':q.text=target.value;break;case 'qHtml':q.contentHtml=target.value;break;case 'qShortAnswer':q.answer=target.value;break;case 'qAliases':q.aliases=target.value.split(';').map(s=>s.trim()).filter(Boolean);break;case 'qExplanation':q.explanation=target.value;break;default:if(target.dataset.option)q.options[target.dataset.option]=target.value;else return}

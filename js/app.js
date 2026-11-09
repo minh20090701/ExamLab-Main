@@ -195,7 +195,11 @@ function questionFraction(q,answer,grading){
  return st.correct/st.total;
 }
 /* EXAMLAB_V20_BULK */
-function questionWeight(q,g){return q.type==='truefalse'?(typeof q.points==='number'&&Number.isFinite(q.points)&&q.points>=0.01&&q.points<=100?q.points:g.points.truefalse):q.type==='short'?g.points.short:g.points.choice}
+function questionWeight(q,g){
+ const own=q?.points;
+ if(own!==undefined&&own!==null&&own!==''&&Number.isFinite(Number(own))&&Number(own)>=0.01&&Number(own)<=100)return Number(own);
+ return q.type==='truefalse'?g.points.truefalse:q.type==='short'?g.points.short:g.points.choice;
+}
 function gradeExamQuestions(qs,answers,grading){
  const g=normalizeGrading(grading),details={};let earned=0,max=0;
  for(const q of qs){
@@ -283,7 +287,15 @@ function normalizedLegacyWithTF(raw,legacyNormalizer){
  const proxy={...raw,questions:raw.questions.map(q=>q?.type==='truefalse'
    ? {...q,type:'short',answer:'Đúng',options:undefined,aliases:[]} : q)};
  const b=legacyNormalizer(proxy);
- b.questions=raw.questions.map((q,i)=>q?.type==='truefalse'?normalizeTFQuestion(q,i):b.questions[i]);
+ /* EXAMLAB_V201_ALL_POINTS */
+ b.questions=raw.questions.map((q,i)=>{
+  const item=q?.type==='truefalse'?normalizeTFQuestion(q,i):b.questions[i];
+  if(q?.points!==undefined&&q?.points!==null&&q.points!==''){
+   const n=Number(q.points);if(!Number.isFinite(n)||n<0.01||n>100)throw Error(`Câu ${i+1}: điểm riêng phải từ 0,01 đến 100`);
+   item.points=n;
+  }
+  return item;
+ });
  b.grading=normalizeGrading(raw.grading);
  return b;
 }
