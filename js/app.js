@@ -194,7 +194,8 @@ function questionFraction(q,answer,grading){
  if(grading.tfMode==='custom')return Math.max(0,Math.min(1,Number(grading.tfPartial[Math.min(st.correct-1,3)])||0));
  return st.correct/st.total;
 }
-function questionWeight(q,g){return q.type==='truefalse'?g.points.truefalse:q.type==='short'?g.points.short:g.points.choice}
+/* EXAMLAB_V20_BULK */
+function questionWeight(q,g){return q.type==='truefalse'?(typeof q.points==='number'&&Number.isFinite(q.points)&&q.points>=0.01&&q.points<=100?q.points:g.points.truefalse):q.type==='short'?g.points.short:g.points.choice}
 function gradeExamQuestions(qs,answers,grading){
  const g=normalizeGrading(grading),details={};let earned=0,max=0;
  for(const q of qs){
@@ -272,7 +273,9 @@ function normalizeTFQuestion(q,i){
  if(!String(q.text||'').trim()&&!String(q.contentHtml||'').trim())throw Error(`Câu ${i+1}: thiếu nội dung câu hỏi`);
  if(!String(q.explanation||'').trim())throw Error(`Câu ${i+1}: thiếu lời giải chi tiết`);
  const images=Array.isArray(q.images)?q.images.filter(x=>typeof x==='string'&&/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/=]+$/i.test(x)&&x.length<=2800000):[];
- return {id:String(q.id??i+1),type:'truefalse',text:String(q.text||''),contentHtml:String(q.contentHtml||''),images,statements,answer,explanation:String(q.explanation||''),aliases:[]};
+ const ownPoints=q.points===undefined||q.points===null||q.points===''?null:Number(q.points);
+ if(ownPoints!==null&&(!Number.isFinite(ownPoints)||ownPoints<0.01||ownPoints>100))throw Error(`Câu ${i+1}: điểm riêng Đúng/Sai phải từ 0,01 đến 100`);
+ return {id:String(q.id??i+1),type:'truefalse',text:String(q.text||''),contentHtml:String(q.contentHtml||''),images,statements,answer,explanation:String(q.explanation||''),aliases:[],...(ownPoints===null?{}:{points:ownPoints})};
 }
 function normalizedLegacyWithTF(raw,legacyNormalizer){
  if(!raw||typeof raw!=='object'||!Array.isArray(raw.questions))return legacyNormalizer(raw);

@@ -1,0 +1,43 @@
+/* ExamLab V20 – batch management, heritage palette compatible in light/dark. */
+.v20-bulk-panel{margin:12px 13px 0;padding:13px 13px 12px;border:1px solid var(--line);border-radius:11px;background:var(--soft);color:var(--ink)}
+.v20-bulk-heading{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.v20-bulk-heading strong{display:block;font-size:12px;letter-spacing:.06em;color:var(--ink)}
+.v20-bulk-heading small{display:block;font-size:11px;line-height:1.5;color:var(--muted);margin-top:3px}
+.v20-bulk-heading .btn{flex-shrink:0}
+.v20-bulk-selection{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin:12px 0 9px}
+#v20BulkCount{font-size:12px;font-weight:800;flex:1 1 100%;color:var(--ink)}
+.v20-bulk-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.v20-bulk-actions>.btn{padding:9px 8px;white-space:normal;min-height:42px;line-height:1.35;font-size:11px;min-width:0}
+.v20-bulk-tip{display:block;color:var(--muted);font-size:10.5px;line-height:1.65;margin-top:12px}
+.v20-bulk-tip b{color:var(--ink)}
+.v20-deck-row{display:flex;align-items:center;gap:2px;width:100%;min-width:0}
+.v20-deck-row>.admin-bank-row{flex:1 1 0%;width:1px;min-width:0}
+.v20-deck-row.v20-selecting>.admin-bank-row{padding-left:6px}
+.v20-select-label{width:30px;min-width:30px;display:grid;place-items:center;align-self:stretch;cursor:pointer}
+.v20-select-label[hidden]{display:none!important}
+.v20-select-label input{width:17px;height:17px;accent-color:var(--violet);cursor:pointer;margin:0}
+.v20-deck-row:has(.v20-select-label input:checked){background:var(--soft);border-radius:8px;outline:1px solid var(--gold)}
+.v20-bulk-progress{margin-top:12px;border-top:1px solid var(--line);padding-top:11px}
+.v20-progress-label{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:11px;line-height:1.5;color:var(--ink)}
+.v20-progress-label strong{flex:none;font-variant-numeric:tabular-nums}
+.v20-progress-track{height:8px;margin-top:7px;border-radius:20px;background:var(--line);overflow:hidden}
+#v20ProgressFill{height:100%;width:0%;background:var(--good);transition:width .17s ease}
+.v20-bulk-progress.is-error #v20ProgressFill{background:var(--bad)}
+.v20-bulk-mask{position:fixed;inset:0;z-index:240;background:rgba(18,14,10,.72);display:flex;align-items:center;justify-content:center;padding:17px;overflow-y:auto;overscroll-behavior:contain}
+.v20-bulk-mask[hidden]{display:none!important}
+.v20-bulk-dialog{width:min(100%,550px);max-height:min(92dvh,800px);overflow-y:auto;background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:15px;padding:23px;box-shadow:0 30px 100px #0005}
+.v20-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:11px}
+.v20-modal-head h2{font-size:21px;line-height:1.35;margin:0;font-family:var(--font-head,Georgia,serif)}
+#v20ModalIntro{color:var(--muted);line-height:1.65;font-size:12px;margin:9px 0 16px}
+.v20-modal-label{display:grid;gap:7px;margin:12px 0;font-size:12px;font-weight:800}
+.v20-bulk-dialog input,.v20-bulk-dialog select{width:100%;border-radius:8px;border:1px solid var(--line);padding:10px 12px;background:var(--field);color:var(--ink);font-size:14px;min-height:43px;outline-offset:1px}
+.v20-bulk-dialog input:focus,.v20-bulk-dialog select:focus{outline:2px solid var(--focus)}
+.v20-modal-examples{font-size:12px;line-height:1.6;padding:12px;border-radius:8px;border:1px solid var(--line);background:var(--soft);max-height:100px;overflow-y:auto;overflow-wrap:anywhere}
+.v20-modal-notice{padding:11px 12px;color:var(--note-ink);background:var(--note-bg);font-size:11.5px;line-height:1.6;border-left:3px solid var(--gold);margin:12px 0}
+.v20-partial-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.v20-partial-grid[hidden]{display:none!important}
+.v20-partial-grid label{font-size:11px;line-height:1.5;font-weight:750}
+.v20-modal-footer{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:17px}
+.v20-modal-footer .btn{min-height:42px}
+@media(max-width:480px){.v20-bulk-panel{margin:10px 10px 0;padding:11px}.v20-bulk-heading{align-items:start;flex-wrap:wrap}.v20-bulk-heading>.btn{width:100%}.v20-bulk-actions{gap:6px}.v20-bulk-dialog{padding:17px 15px}.v20-modal-footer>.btn{flex:1}}
+@media(prefers-reduced-motion:reduce){#v20ProgressFill{transition:none}}
