@@ -255,8 +255,31 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
    if(error)throw Error('Chưa cài chức năng xóa đề trên Supabase: '+error.message);
    return new Set((data||[]).map(row=>String(row.deck_id)));
  }
+
+ // ExamLab V18 — tiến trình phản ánh số bộ đề/tệp đã xử lý thực tế.
+ function examlabProgressV18(kind,done,total,label,mode){
+   const root=document.getElementById(kind==='publish'?'publishProgressV18':kind==='import'?'importProgressV18':'importSaveProgressV18');
+   if(!root)return;
+   root.hidden=false;
+   const percent=Math.max(0,Math.min(100,Math.round((Number(done)||0)/Math.max(1,Number(total)||1)*100)));
+   const meter=root.querySelector('[role="progressbar"]');
+   root.dataset.progressState=mode||'active';
+   const fill=root.querySelector('[data-progress-fill]');if(fill)fill.style.width=percent+'%';
+   if(meter)meter.setAttribute('aria-valuenow',String(percent));
+   const pct=root.querySelector('[data-progress-pct]');if(pct)pct.textContent=percent+'%';
+   const description=root.querySelector('[data-progress-text]');if(description)description.textContent=label||'Đang xử lý…';
+ }
+ const examlabProgressFrameV18=()=>new Promise(resolve=>requestAnimationFrame(resolve));
+ let examlabPublishBusyV18=false;
+
  async function publish(){
+  if(examlabPublishBusyV18)return;
   if(state.dirty){toast('Hãy lưu thay đổi trước khi phát hành.',true);return}
+  examlabPublishBusyV18=true;
+  const publishButtonV18=$('#publishBtn'),savedTextV18=publishButtonV18?.textContent||'Xuất bản đề';
+  let progressDoneV18=0,progressTotalV18=0;
+  if(publishButtonV18){publishButtonV18.disabled=true;publishButtonV18.textContent='Đang xuất bản…'}
+  examlabProgressV18('publish',0,1,'Đang xác minh quyền và trạng thái đề…');
   try{
    const db=window.ExamLabSupabase;if(!db)throw Error(window.ExamLabSupabaseError||'Chưa kết nối hệ thống');
    // Luôn tra cứu trên máy chủ để không tự bật lại các đề đã ẩn.
@@ -280,7 +303,11 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
    }
 
    let count=0,hiddenSkipped=0,removedSkipped=0,restored=0;
+   progressTotalV18=all.length;
+   examlabProgressV18('publish',0,progressTotalV18,`Đang xử lý 0/${progressTotalV18} bộ đề…`);
+   await examlabProgressFrameV18();
    for(const b of all){
+    try{
     const previouslyRemoved=removedIds.has(String(b.id));
     if(previouslyRemoved&&!approvedRestore.has(String(b.id))){removedSkipped++;continue}
     if(!previouslyRemoved&&statuses.get(b.id)===false){hiddenSkipped++;continue}
@@ -294,10 +321,17 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
      removedIds.delete(String(b.id));restored++;
     }
     count++;state.visibility.set(b.id,true);
+    }finally{
+     progressDoneV18++;
+     examlabProgressV18('publish',progressDoneV18,progressTotalV18,`Đã xử lý ${progressDoneV18}/${progressTotalV18} bộ đề · Đã công khai ${count} đề`);
+     await examlabProgressFrameV18();
+    }
    }
    refresh();renderEditor();
+   examlabProgressV18('publish',progressTotalV18,progressTotalV18,`Hoàn tất: ${count} đề công khai, ${hiddenSkipped+removedSkipped} đề giữ nguyên/bỏ qua`, 'done');
    toast(`Đã xuất bản ${count} bộ đề.${restored?' Đã khôi phục '+restored+' đề từng xóa.':''}${hiddenSkipped?' Giữ nguyên '+hiddenSkipped+' đề đang ẩn.':''}${removedSkipped?' Tiếp tục bỏ qua '+removedSkipped+' đề đã xóa.':''}`);
-  }catch(e){toast('Không phát hành được: '+e.message,true)}
+  }catch(e){examlabProgressV18('publish',progressDoneV18,progressTotalV18,`Lỗi xuất bản: ${e.message||e}`,'error');toast('Không phát hành được: '+e.message,true)}
+  finally{examlabPublishBusyV18=false;if(publishButtonV18){publishButtonV18.disabled=false;publishButtonV18.textContent=savedTextV18}}
  }
  async function toggleBankVisibility(){
   const bank=state.draft;if(!bank)return;
@@ -317,6 +351,7 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
  }
 
  // Chế độ nhập hàng loạt: chỉ thao tác cục bộ. KHÔNG phát hành tự động.
+ let examlabImportIndexV18=0,examlabImportTotalV18=1;
  const IMPORT_MAX_FILE=50*1024*1024;
  const IMPORT_MAX_UNCOMPRESSED=65*1024*1024;
  const importState={entries:[],errors:[],skipped:[],busy:false};
@@ -355,14 +390,17 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
      const entries=Object.values(zip.files).filter(v=>!v.dir && /\.json$/i.test(v.name));
      if(entries.length>250)throw Error('Gói đề có quá nhiều tệp (>250)');
      let sizeTotal=0;
+     let zipIndexV18=0;
      for(const item of entries){
+       examlabProgressV18('import',examlabImportIndexV18+(zipIndexV18/Math.max(1,entries.length)),examlabImportTotalV18,`Đang giải nén và kiểm tra ${zipIndexV18+1}/${entries.length} tệp JSON trong ${name}`);
+       zipIndexV18++;
        const path=item.name.replaceAll('\\','/');
        if(isReviewOnlyName(path)){importState.skipped.push(path+' (bản nháp / danh mục chưa dùng để chấm)');continue}
        const size=Number(item._data?.uncompressedSize)||0;
        if(size>IMPORT_MAX_UNCOMPRESSED){importState.errors.push(`${path}: nội dung quá lớn`);continue}
        sizeTotal+=size;
        if(sizeTotal>IMPORT_MAX_UNCOMPRESSED){importState.errors.push('Dung lượng giải nén vượt quá 65 MB');break}
-       try{await scanQuiz(path,JSON.parse(await item.async('string')))}catch(e){importState.errors.push(`${path}: ${e.message}`)}
+       try{const jsonTextV18=await item.async('string',metadata=>{examlabProgressV18('import',examlabImportIndexV18+((zipIndexV18-1)+((metadata?.percent||0)/100))/Math.max(1,entries.length),examlabImportTotalV18,`Đang đọc ${zipIndexV18}/${entries.length}: ${path}`)});await scanQuiz(path,JSON.parse(jsonTextV18))}catch(e){importState.errors.push(`${path}: ${e.message}`)}
      }
      if(!entries.length)importState.errors.push(`${name}: không tìm thấy đề hợp lệ trong gói đã chọn`);
    }catch(e){importState.errors.push(`${name}: ${e.message}`)}
@@ -394,9 +432,14 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
     const overwrite=selected.filter(x=>x.existing);
     if(overwrite.length&&!(await window.ExamLabDialog.confirm(`${overwrite.length} bộ đề đang có trên thiết bị sẽ được thay thế bằng bản nhập mới.`,{title:'Ghi đè bộ đề?',confirmText:'Ghi đè',danger:true})))return;
     importState.busy=true;root.querySelector('#bulkSave').disabled=true;let count=0;const errors=[];
+    const saveProgressRootV18=document.createElement('div');saveProgressRootV18.innerHTML="<div class=\"examlab-progress-wrap\" id=\"importSaveProgressV18\" role=\"status\" aria-live=\"polite\">\n <div class=\"examlab-progress-head\"><b data-progress-text>Chuẩn bị lưu các đề đã chọn...</b><strong data-progress-pct>0%</strong></div>\n <div class=\"examlab-progress-track\" role=\"progressbar\" aria-label=\"Tiến trình đọc tệp đề\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\"><div class=\"examlab-progress-fill\" data-progress-fill></div></div>\n <small data-progress-sub>Đang kiểm tra nội dung và đáp án. Chưa tải lên Supabase.</small>\n </div>";
+    root.querySelector('.bulk-foot').before(saveProgressRootV18.firstElementChild);
+    let saveDoneV18=0;
+    examlabProgressV18('save',0,selected.length,`Chuẩn bị lưu 0/${selected.length} đề vào thiết bị`);
     for(const x of selected){
       try{await dbAction('save',x.bank);const i=state.banks.findIndex(b=>b.id===x.bank.id);if(i===-1)state.banks.push(x.bank);else state.banks[i]=x.bank;count++}
       catch(e){errors.push(`${x.bank.title}: ${e.message}`)}
+      finally{saveDoneV18++;examlabProgressV18('save',saveDoneV18,selected.length,`Đã lưu/kiểm tra ${saveDoneV18}/${selected.length} đề`);await examlabProgressFrameV18()}
     }
     importState.busy=false;root.hidden=true;refresh();
     toast(errors.length?`Đã lưu ${count} đề, ${errors.length} lỗi: ${errors[0]}`:`Đã lưu ${count} đề vào bản nháp Admin. Chưa xuất bản.`,!!errors.length);
@@ -409,8 +452,17 @@ Nếu đã xuất bản, đề sẽ bị xóa trên Supabase và không hiện l
   if(!state.db){toast('Bạn cần đăng nhập Admin và kết nối cơ sở dữ liệu trước.',true);return}
   importState.entries=[];importState.errors=[];importState.skipped=[];
   $('#adminImportModal').hidden=false;
-  $('#adminImportModal').innerHTML='<div class="admin-mask"><div class="admin-dialog bulk-dialog"><h2>Đang kiểm tra tệp đề...</h2><p>Đang kiểm tra nội dung và đáp án.</p></div></div>';
-  for(const file of files)await scanFile(file);
+  $('#adminImportModal').innerHTML='<div class="admin-mask"><div class="admin-dialog bulk-dialog"><h2>Đang kiểm tra tệp đề...</h2><p>Đang kiểm tra nội dung và đáp án.</p>'+"<div class=\"examlab-progress-wrap\" id=\"importProgressV18\" role=\"status\" aria-live=\"polite\">\n <div class=\"examlab-progress-head\"><b data-progress-text>Đang kiểm tra tệp đề...</b><strong data-progress-pct>0%</strong></div>\n <div class=\"examlab-progress-track\" role=\"progressbar\" aria-label=\"Tiến trình đọc tệp đề\" aria-valuemin=\"0\" aria-valuemax=\"100\" aria-valuenow=\"0\"><div class=\"examlab-progress-fill\" data-progress-fill></div></div>\n <small data-progress-sub>Đang kiểm tra nội dung và đáp án. Chưa tải lên Supabase.</small>\n </div>"+'</div></div>';
+  const fileListV18=Array.from(files);
+  examlabImportTotalV18=fileListV18.length;
+  for(let i=0;i<fileListV18.length;i++){
+   const file=fileListV18[i];examlabImportIndexV18=i;
+   examlabProgressV18('import',i,fileListV18.length,`Đang đọc tệp ${i+1}/${fileListV18.length}: ${file.name}`);
+   await examlabProgressFrameV18();
+   await scanFile(file);
+   examlabProgressV18('import',i+1,fileListV18.length,`Đã kiểm tra ${i+1}/${fileListV18.length} tệp`, 'active');
+   await examlabProgressFrameV18();
+  }
   // Mỗi ID xuất hiện tối đa một lần trong một lượt nhập.
   const seen=new Set();importState.entries=importState.entries.filter(x=>{if(seen.has(x.bank.id)){importState.errors.push(`${x.name}: trùng mã bộ đề trong lượt nhập`);return false}seen.add(x.bank.id);return true});
   renderImportModal();

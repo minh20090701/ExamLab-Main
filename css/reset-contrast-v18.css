@@ -1,0 +1,28 @@
+/* ExamLab V18: readable reset-password page in both light/dark modes. */
+html body.auth-page { background:var(--bg,#f4eee0); color:var(--ink,#382a20); }
+body.auth-page main { width:min(100%,580px); margin:clamp(24px,7vh,88px) auto; padding:14px; flex:0 0 auto; }
+body.auth-page main section {
+  background:var(--card,#fffaf2) !important;
+  color:var(--ink,#382a20) !important;
+  border:1px solid var(--line,#ddcbb0) !important;
+  box-shadow:var(--shadow,0 12px 35px #0001);
+  border-radius:20px;
+  padding:clamp(22px,5vw,36px);
+}
+body.auth-page main section h1 { color:var(--ink,#382a20) !important; opacity:1 !important; font-size:clamp(28px,6vw,38px); line-height:1.35; margin:0 0 18px; }
+body.auth-page main section p { color:var(--muted,#806e5e) !important; opacity:1 !important; line-height:1.7; }
+body.auth-page main section form { display:grid; gap:15px; }
+body.auth-page main section label { display:block; color:var(--ink,#382a20) !important; opacity:1 !important; font-size:13px; font-weight:750; line-height:1.65; }
+body.auth-page main section input[type="password"] {
+  display:block; width:100%; min-height:52px; margin:8px 0 0;
+  border:1px solid var(--line,#ddcbb0) !important;
+  border-radius:11px; background:var(--field,#fffdf8) !important;
+  color:var(--ink,#382a20) !important;
+  -webkit-text-fill-color:var(--ink,#382a20); opacity:1 !important;
+  caret-color:var(--ink,#382a20); font-size:16px; line-height:1.4;
+}
+body.auth-page main section input[type="password"]:focus { outline:2px solid var(--focus,#a96e3c); outline-offset:2px; }
+body.auth-page main section input[type="password"]::placeholder { color:var(--muted,#806e5e); opacity:1; }
+body.auth-page main section .btn { color:#fff !important; min-height:48px; white-space:normal; margin-top:6px; }
+body.auth-page main section a { color:var(--violet,#993c2c) !important; opacity:1; font-weight:700; }
+@media(max-width:520px) { body.auth-page main { margin:22px auto; padding:12px; } body.auth-page main section { padding:24px 20px; } }

@@ -17,6 +17,7 @@
 <link href="css/header-stable-v10.css?v=10.1" rel="stylesheet"/>
 <link rel="stylesheet" href="css/header-full-v13.css?v=13.0"><link rel="stylesheet" href="css/examlab-dialogs-v14.css?v=14.0">
 <link rel="stylesheet" href="css/catalog-v17.css?v=17.1">
+<link rel="stylesheet" href="css/admin-upload-progress-v18.css?v=18.0">
 </head>
 <body class="admin-page">
 <header class="topbar admin-topbar"><div class="topbar-inner">
@@ -46,7 +47,12 @@
 </div></div>
 </div>
 </section>
-<section class="admin-publish-panel"><div><span class="eyebrow">PHÁT HÀNH BỘ ĐỀ</span><h2>Đưa đề lên web học sinh</h2><p>Bản nháp được lưu trên thiết bị đang soạn. Đề đã công khai có thể ẩn/hiện ngay trong phần biên soạn; xuất bản hàng loạt không tự hiện lại đề đã ẩn.</p><p class="admin-small" id="publishNote">Đáp án chỉ được hiển thị sau khi học sinh nộp bài. Vì đề nằm ở trình duyệt, đây là hệ thống tự ôn luyện, chưa có chống gian lận.</p></div><button class="btn btn-primary" id="publishBtn">⇩ Xuất bản đề</button></section>
+<section class="admin-publish-panel"><div><span class="eyebrow">PHÁT HÀNH BỘ ĐỀ</span><h2>Đưa đề lên web học sinh</h2><p>Bản nháp được lưu trên thiết bị đang soạn. Đề đã công khai có thể ẩn/hiện ngay trong phần biên soạn; xuất bản hàng loạt không tự hiện lại đề đã ẩn.</p><p class="admin-small" id="publishNote">Đáp án chỉ được hiển thị sau khi học sinh nộp bài. Vì đề nằm ở trình duyệt, đây là hệ thống tự ôn luyện, chưa có chống gian lận.</p></div><button class="btn btn-primary" id="publishBtn">⇩ Xuất bản đề</button><div class="examlab-progress-wrap" id="publishProgressV18" role="status" aria-live="polite" hidden>
+   <div class="examlab-progress-head"><b data-progress-text>Chưa bắt đầu xuất bản</b><strong data-progress-pct>0%</strong></div>
+   <div class="examlab-progress-track" role="progressbar" aria-label="Tiến trình xuất bản bộ đề" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="examlab-progress-fill" data-progress-fill></div></div>
+   <small data-progress-sub>Tiến trình tính theo số bộ đề đã xử lý, không phải số byte.</small>
+ </div>
+</section>
 </main>
 <input accept=".json,application/json,.zip,application/zip,application/x-zip-compressed" hidden="" id="adminFileInput" multiple="" type="file"/>
 <div hidden="" id="adminImportModal"></div>
@@ -57,7 +63,7 @@
 <script src="supabase-config.js"></script>
 <script src="js/supabase-client.js?v=6"></script>
 <script src="js/mfa-route-guard.js?v=8"></script>
-<script src="js/admin-auth.js?v=6"></script><script src="js/role-visibility.js?v=13.0"></script><script src="js/jszip.min.js?v=6"></script><script src="js/admin.js?v=17.2"></script>
+<script src="js/admin-auth.js?v=6"></script><script src="js/role-visibility.js?v=13.0"></script><script src="js/jszip.min.js?v=6"></script><script src="js/admin.js?v=18.0"></script>
 <script src="js/visible-profile-name.js?v=8"></script>
 </body>
 </html>
