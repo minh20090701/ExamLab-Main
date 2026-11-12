@@ -1,0 +1,109 @@
+/* V25.2: no grid resizing, no reparenting, no sticky answer sheet. */
+html.examlab-v252-exam { scroll-behavior:auto !important; overflow-anchor:none; }
+html.examlab-v252-exam body, #view.exam-view { overflow-anchor:none; }
+#view.exam-view .v252-backtop-wrap { display:flex; justify-content:center; padding:12px 0 24px; }
+#view.exam-view .v252-backtop { min-height:44px; padding:11px 20px; border:1px solid var(--line,#dfcbb1); border-radius:11px; background:var(--card,#fffaf2); color:var(--ink,#392a20); font-size:14px; font-weight:750; cursor:pointer; }
+#view.exam-view .v252-backtop:focus-visible,#view.exam-view .floating-palette:focus-visible { outline:2px solid var(--gold,#b68742); outline-offset:3px; }
+@media(min-width:761px) {
+  #view.exam-view #examSidebar { position:static !important; top:auto !important; align-self:start; overflow-anchor:none; }
+  /* Visibility only: this element always occupies the same grid slot. */
+  #view.exam-view #examSidebar[data-v252-collapsed="true"] { opacity:0 !important; visibility:hidden !important; pointer-events:none !important; }
+  #view.exam-view .floating-palette { display:grid !important; place-items:center; position:fixed !important; right:max(16px,env(safe-area-inset-right)) !important; bottom:calc(76px + env(safe-area-inset-bottom)) !important; width:46px; min-width:46px; height:46px; min-height:46px; padding:0 !important; margin:0 !important; border-radius:12px; z-index:75; font-size:0 !important; line-height:1; background:var(--deep,#783c2c); color:#fff4e5; border:1px solid var(--gold,#b68742); box-shadow:0 7px 18px #29170b35; visibility:hidden; opacity:0; pointer-events:none; }
+  #view.exam-view .floating-palette[data-v252-visible="true"] { visibility:visible; opacity:1; pointer-events:auto; }
+  #view.exam-view .floating-palette span { font-size:0 !important; }
+  #view.exam-view .floating-palette::before { content:'▦'; font:700 24px/1 system-ui,sans-serif; }
+}
+#modalRoot .modal-mask:has(.pal-grid) .modal { max-height:min(86dvh,780px); overflow-y:auto; overscroll-behavior:contain; }
+@media(max-width:760px) { #view.exam-view .v252-backtop-wrap { padding-bottom:90px; } }
+
+
+/* V25.3 polish: cleaner launcher icon + compact answer-sheet dialog */
+@media(min-width:761px) {
+  #view.exam-view .floating-palette {
+    width:48px;
+    min-width:48px;
+    height:48px;
+    min-height:48px;
+    border-radius:14px;
+    box-shadow:0 10px 24px rgba(41,23,11,.22);
+    background:linear-gradient(180deg, #8b4635 0%, #783c2c 100%);
+  }
+  #view.exam-view .floating-palette::before {
+    content:'☷';
+    font:700 20px/1 system-ui,sans-serif;
+    transform:translateY(-1px);
+  }
+}
+
+#modalRoot .modal-mask:has(.pal-grid) .modal {
+  width:min(540px, calc(100vw - 28px));
+  padding:18px 18px 16px;
+  border-radius:22px;
+}
+#modalRoot .modal-mask:has(.pal-grid) h1,
+#modalRoot .modal-mask:has(.pal-grid) h2,
+#modalRoot .modal-mask:has(.pal-grid) h3 {
+  font-size:clamp(16px, 2vw, 22px) !important;
+  line-height:1.2;
+  margin-bottom:6px;
+}
+#modalRoot .modal-mask:has(.pal-grid) p,
+#modalRoot .modal-mask:has(.pal-grid) .muted,
+#modalRoot .modal-mask:has(.pal-grid) small,
+#modalRoot .modal-mask:has(.pal-grid) label {
+  font-size:13px !important;
+}
+#modalRoot .modal-mask:has(.pal-grid) .pal-grid {
+  display:grid !important;
+  grid-template-columns:repeat(5, minmax(0, 1fr));
+  gap:10px;
+}
+#modalRoot .modal-mask:has(.pal-grid) .pal-grid > * {
+  min-width:0;
+}
+#modalRoot .modal-mask:has(.pal-grid) .pal-grid button,
+#modalRoot .modal-mask:has(.pal-grid) .pal-grid [role="button"] {
+  min-height:44px !important;
+  height:44px;
+  border-radius:10px !important;
+  font-size:16px !important;
+  font-weight:700;
+  padding:0 6px !important;
+}
+#modalRoot .modal-mask:has(.pal-grid) .modal > button,
+#modalRoot .modal-mask:has(.pal-grid) .modal .icon-btn,
+#modalRoot .modal-mask:has(.pal-grid) .modal [aria-label*="Đóng"],
+#modalRoot .modal-mask:has(.pal-grid) .modal [aria-label*="đóng"] {
+  width:42px;
+  min-width:42px;
+  height:42px;
+  min-height:42px;
+  border-radius:12px;
+}
+#modalRoot .modal-mask:has(.pal-grid) .modal .btn,
+#modalRoot .modal-mask:has(.pal-grid) .modal button:not(.pal-grid button):not([aria-label*="Đóng"]):not([aria-label*="đóng"]) {
+  min-height:44px;
+  padding:10px 14px;
+  font-size:15px;
+}
+#modalRoot .modal-mask:has(.pal-grid) .modal .legend,
+#modalRoot .modal-mask:has(.pal-grid) .modal [class*="legend"] {
+  gap:12px;
+  font-size:13px;
+}
+@media(max-width:760px) {
+  #modalRoot .modal-mask:has(.pal-grid) .modal {
+    width:min(420px, calc(100vw - 18px));
+    padding:16px 14px 14px;
+    border-radius:18px;
+  }
+  #modalRoot .modal-mask:has(.pal-grid) .pal-grid {
+    gap:8px;
+  }
+  #modalRoot .modal-mask:has(.pal-grid) .pal-grid button,
+  #modalRoot .modal-mask:has(.pal-grid) .pal-grid [role="button"] {
+    min-height:42px !important;
+    height:42px;
+    font-size:15px !important;
+  }
+}
