@@ -1,4 +1,4 @@
-/* ExamLab V23: V22 arithmetic + accessible draggable calculator on desktop/mobile. */
+/* ExamLab V23.1: V22 arithmetic + accessible draggable calculator on desktop/mobile. */
 (function(){
 'use strict';
 const KEY='examlab.calculator.enabled.v22';
@@ -10,25 +10,35 @@ let savedPosition=null,drag=null,layoutFrame=0;
 try{const p=JSON.parse(localStorage.getItem(POSITION_KEY)||'null');if(p&&Number.isFinite(p.x)&&Number.isFinite(p.y))savedPosition={x:Math.max(0,Math.min(1,p.x)),y:Math.max(0,Math.min(1,p.y))};}catch(_){}
 const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
 function viewport(){const v=window.visualViewport;return {x:v?.offsetLeft||0,y:v?.offsetTop||0,w:v?.width||window.innerWidth,h:v?.height||window.innerHeight};}
-function limits(){const v=viewport(),r=root.getBoundingClientRect(),m=12;return {minX:v.x+m,minY:v.y+m,maxX:Math.max(v.x+m,v.x+v.w-r.width-m),maxY:Math.max(v.y+m,v.y+v.h-r.height-m)};}
-function place(x,y){const l=limits();const a=clamp(x,l.minX,l.maxX),b=clamp(y,l.minY,l.maxY);root.style.left=a+'px';root.style.top=b+'px';root.style.right='auto';root.style.bottom='auto';return {x:a,y:b};}
-function rememberPosition(){const l=limits(),r=root.getBoundingClientRect();savedPosition={x:l.maxX===l.minX?0:clamp((r.left-l.minX)/(l.maxX-l.minX),0,1),y:l.maxY===l.minY?0:clamp((r.top-l.minY)/(l.maxY-l.minY),0,1)};try{localStorage.setItem(POSITION_KEY,JSON.stringify(savedPosition))}catch(_){};}
-function resetDock(){if(!root)return;root.style.left='';root.style.top='';root.style.right='';root.style.bottom='';root.style.removeProperty('--excalc-panel-limit');root.style.removeProperty('--excalc-panel-width');}
+// V23.1: the launcher stays docked; only the panel has movable coordinates.
+function limits(){const v=viewport(),r=panel.getBoundingClientRect(),m=12;return {minX:v.x+m,minY:v.y+m,maxX:Math.max(v.x+m,v.x+v.w-r.width-m),maxY:Math.max(v.y+m,v.y+v.h-r.height-m)};}
+function place(x,y){const l=limits(),r=panel.getBoundingClientRect(),f=fab.getBoundingClientRect(),gap=8;let a=clamp(x,l.minX,l.maxX),b=clamp(y,l.minY,l.maxY);
+ // Keep the fixed launcher accessible, including on a narrow phone.
+ if(a+r.width+gap>f.left&&a<f.right+gap&&b+r.height+gap>f.top&&b<f.bottom+gap){
+  const above=f.top-gap-r.height,left=f.left-gap-r.width;
+  if(above>=l.minY)b=clamp(above,l.minY,l.maxY);
+  else if(left>=l.minX)a=clamp(left,l.minX,l.maxX);
+ }
+ panel.style.left=a+'px';panel.style.top=b+'px';return {x:a,y:b};}
+function rememberPosition(){const l=limits(),r=panel.getBoundingClientRect();savedPosition={x:l.maxX===l.minX?0:clamp((r.left-l.minX)/(l.maxX-l.minX),0,1),y:l.maxY===l.minY?0:clamp((r.top-l.minY)/(l.maxY-l.minY),0,1)};try{localStorage.setItem(POSITION_KEY,JSON.stringify(savedPosition))}catch(_){};}
+function resetDock(){if(!panel)return;panel.style.left='';panel.style.top='';panel.style.removeProperty('--excalc-panel-limit');panel.style.removeProperty('--excalc-panel-width');}
 function layoutCalc(){if(!root||!panel||panel.hidden||root.hidden)return;
- const v=viewport(),m=12,buttonHeight=fab.getBoundingClientRect().height,gap=10;
- const dockBottom=!savedPosition&&root.classList.contains('in-exam')&&window.innerWidth<=760?72:m;
- root.style.setProperty('--excalc-panel-limit',Math.max(70,Math.floor(v.h-m-dockBottom-buttonHeight-gap))+'px');
- root.style.setProperty('--excalc-panel-width',Math.max(100,Math.floor(v.w-m*2))+'px');
+ const v=viewport(),m=12,gap=8,f=fab.getBoundingClientRect();
+ const w=Math.min(318,v.w-m*2),narrow=v.w<w+f.width+3*m;
+ // On a narrow screen reserve a small space above the fixed launcher; the panel scrolls internally if needed.
+ const maxH=narrow?Math.min(v.h-m*2,f.top-v.y-m-gap):v.h-m*2;
+ panel.style.setProperty('--excalc-panel-limit',Math.max(70,Math.floor(maxH))+'px');
+ panel.style.setProperty('--excalc-panel-width',Math.max(100,Math.floor(v.w-m*2))+'px');
  if(savedPosition){const l=limits();place(l.minX+savedPosition.x*(l.maxX-l.minX),l.minY+savedPosition.y*(l.maxY-l.minY));}
- else{const r=root.getBoundingClientRect();place(v.x+v.w-r.width-m,v.y+v.h-r.height-dockBottom);}
+ else{const r=panel.getBoundingClientRect();place(f.right-r.width,f.top-r.height-gap);}
 }
 function queueLayout(){if(layoutFrame)return;layoutFrame=requestAnimationFrame(()=>{layoutFrame=0;if(!drag)layoutCalc()});}
 function bindDrag(){const handle=panel.querySelector('.excalc-drag-handle');
- handle.addEventListener('pointerdown',e=>{if(panel.hidden||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;const r=root.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top,moved:false};handle.setPointerCapture(e.pointerId);e.preventDefault();});
+ handle.addEventListener('pointerdown',e=>{if(panel.hidden||!e.isPrimary||(e.pointerType==='mouse'&&e.button!==0))return;const r=panel.getBoundingClientRect();drag={id:e.pointerId,x:e.clientX,y:e.clientY,left:r.left,top:r.top,moved:false};handle.setPointerCapture(e.pointerId);e.preventDefault();});
  handle.addEventListener('pointermove',e=>{if(!drag||drag.id!==e.pointerId)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<3)return;drag.moved=true;root.classList.add('excalc-dragging');place(drag.left+dx,drag.top+dy);e.preventDefault();});
  function end(e){if(!drag||drag.id!==e.pointerId)return;const moved=drag.moved;drag=null;root.classList.remove('excalc-dragging');if(handle.hasPointerCapture(e.pointerId))handle.releasePointerCapture(e.pointerId);if(moved)rememberPosition();queueLayout();}
  handle.addEventListener('pointerup',end);handle.addEventListener('pointercancel',end);handle.addEventListener('lostpointercapture',end);
- handle.addEventListener('keydown',e=>{const moves={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};const d=moves[e.key];if(!d)return;e.preventDefault();e.stopPropagation();const r=root.getBoundingClientRect(),step=e.shiftKey?48:16;place(r.left+d[0]*step,r.top+d[1]*step);rememberPosition();queueLayout();});
+ handle.addEventListener('keydown',e=>{const moves={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};const d=moves[e.key];if(!d)return;e.preventDefault();e.stopPropagation();const r=panel.getBoundingClientRect(),step=e.shiftKey?48:16;place(r.left+d[0]*step,r.top+d[1]*step);rememberPosition();queueLayout();});
  window.addEventListener('resize',queueLayout);window.visualViewport?.addEventListener('resize',queueLayout);window.visualViewport?.addEventListener('scroll',queueLayout);
 }
 

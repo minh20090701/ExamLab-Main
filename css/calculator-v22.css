@@ -45,3 +45,8 @@ html[data-theme=dark] :is(.excalc-root,.excalc-settings-overlay,#excalcProfileSe
 @media(max-height:500px){.excalc-root .excalc-panel{padding:9px 12px}.excalc-root .excalc-move-head{margin-bottom:6px}.excalc-root .excalc-screen{min-height:58px;padding:6px 9px;margin-bottom:7px}.excalc-root .excalc-history{height:16px}.excalc-root .excalc-display{font-size:21px}.excalc-root .excalc-keys{gap:5px}.excalc-root .excalc-key{min-height:36px}.excalc-root .excalc-tip{margin-top:6px}}
 
 @media(max-width:360px){.excalc-root .excalc-panel{width:min(272px,var(--excalc-panel-width,calc(100vw - 24px)));}.excalc-root .excalc-keys{gap:5px;}}
+
+/* V23.1: fixed launcher, independently positioned floating calculator. */
+.excalc-root{isolation:isolate;}
+.excalc-root .excalc-fab{position:relative;z-index:3;flex:none;}
+.excalc-root .excalc-panel{position:fixed;left:12px;top:12px;right:auto;bottom:auto;z-index:2;margin:0;}
