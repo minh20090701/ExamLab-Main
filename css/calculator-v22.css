@@ -32,3 +32,16 @@ html[data-theme=dark] :is(.excalc-root,.excalc-settings-overlay,#excalcProfileSe
 @media(max-width:760px){.excalc-root{right:max(12px,env(safe-area-inset-right));bottom:calc(12px + env(safe-area-inset-bottom))}.excalc-root.in-exam{bottom:calc(72px + env(safe-area-inset-bottom))}.excalc-root.in-exam .excalc-panel{max-height:calc(100dvh - 143px)}.excalc-fab{width:43px;height:43px;padding:11px}.excalc-panel{width:min(310px,calc(100vw - 24px));padding:12px}.excalc-settings-trigger{width:30px;height:30px;flex-basis:30px;padding:6px}.excalc-key{min-height:43px}.excalc-settings-panel{padding:18px}.excalc-setting{padding:12px;gap:10px}}
 @media(max-width:360px){.excalc-settings-trigger{width:28px;height:28px;flex-basis:28px;padding:5px}.excalc-panel{padding:10px}.excalc-keys{gap:5px}.excalc-key{min-height:39px}}
 @media(prefers-reduced-motion:reduce){.excalc-switch,.excalc-switch>span{transition:none}.excalc-key:active,.excalc-fab:active{transform:none}}
+
+/* V23: drag the whole floating calculator while open; closing returns the launcher to its dock. */
+.excalc-root .excalc-panel{width:min(318px,var(--excalc-panel-width,calc(100vw - 32px)));max-height:min(530px,var(--excalc-panel-limit,calc(100dvh - 90px)));box-sizing:border-box;}
+.excalc-root .excalc-move-head{position:sticky;top:0;z-index:2;background:var(--calc-surface);padding:3px 0 7px;margin-top:-3px;}
+.excalc-root .excalc-drag-handle{flex:1;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;min-width:0;}
+.excalc-root .excalc-drag-handle small{font-size:10px;font-weight:600;color:var(--calc-muted);letter-spacing:0;}
+.excalc-root .excalc-drag-handle:focus-visible{outline:2px solid #c79756;outline-offset:3px;border-radius:6px;}
+.excalc-root.excalc-dragging .excalc-drag-handle{cursor:grabbing;}
+.excalc-root.excalc-dragging .excalc-panel{user-select:none;-webkit-user-select:none;}
+@media(max-width:760px){.excalc-root .excalc-panel{width:min(310px,var(--excalc-panel-width,calc(100vw - 24px)));max-height:min(530px,var(--excalc-panel-limit,calc(100dvh - 90px)));}.excalc-root .excalc-key{min-height:43px}.excalc-root .excalc-move-head{padding-bottom:6px;}}
+@media(max-height:500px){.excalc-root .excalc-panel{padding:9px 12px}.excalc-root .excalc-move-head{margin-bottom:6px}.excalc-root .excalc-screen{min-height:58px;padding:6px 9px;margin-bottom:7px}.excalc-root .excalc-history{height:16px}.excalc-root .excalc-display{font-size:21px}.excalc-root .excalc-keys{gap:5px}.excalc-root .excalc-key{min-height:36px}.excalc-root .excalc-tip{margin-top:6px}}
+
+@media(max-width:360px){.excalc-root .excalc-panel{width:min(272px,var(--excalc-panel-width,calc(100vw - 24px)));}.excalc-root .excalc-keys{gap:5px;}}
