@@ -59,6 +59,6 @@
  $('#fileDrop').addEventListener('drop',e=>{e.preventDefault();e.currentTarget.classList.remove('dragover');const f=e.dataTransfer.files?.[0];if(!f)return;const dt=new DataTransfer();dt.items.add(f);$('#docFile').files=dt.files;$('#fileLabel').textContent=f.name});
  $('#docsUploadForm').addEventListener('submit',handleUpload);
  document.addEventListener('click',async e=>{const btn=e.target.closest('[data-doc]');if(!btn)return;try{const id=btn.dataset.id;switch(btn.dataset.doc){case 'view':showDetails(id);break;case 'download':await downloadDoc(id);break;case 'preview':await downloadDoc(id,true);break;case 'publish':await changeVisibility(id,'public');break;case 'private':await changeVisibility(id,'private');break;case 'delete':await deleteDoc(id);break;}}catch(err){console.error(err);toast(err.message||'Có lỗi xảy ra.',true)}});
- async function init(){try{await store.connect();state.session=await window.ExamLabAuth.getSession();window.ExamLabAuth.onAuthStateChange(async next=>{state.session=next;try{await reload()}catch(err){toast(err.message,true)}});await reload()}catch(e){console.error(e);toast('Không thể kết nối thư viện Supabase.',true)}}init();
+ async function init(){try{await store.connect();state.session=await window.ExamLabAuth.getSession();window.ExamLabAuth.onAuthStateChange(async next=>{state.session=next;try{await reload()}catch(err){toast(err.message,true)}});await reload()}catch(e){console.error(e);toast('Không thể kết nối thư viện.',true)}}init();
 })();
 
