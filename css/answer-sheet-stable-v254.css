@@ -1,0 +1,61 @@
+/* V25.2: no grid resizing, no reparenting, no sticky answer sheet. */
+html.examlab-v252-exam { scroll-behavior:auto !important; overflow-anchor:none; }
+html.examlab-v252-exam body, #view.exam-view { overflow-anchor:none; }
+#view.exam-view .v252-backtop-wrap { display:flex; justify-content:center; padding:12px 0 24px; }
+#view.exam-view .v252-backtop { min-height:44px; padding:11px 20px; border:1px solid var(--line,#dfcbb1); border-radius:11px; background:var(--card,#fffaf2); color:var(--ink,#392a20); font-size:14px; font-weight:750; cursor:pointer; }
+#view.exam-view .v252-backtop:focus-visible,#view.exam-view .floating-palette:focus-visible { outline:2px solid var(--gold,#b68742); outline-offset:3px; }
+@media(min-width:761px) {
+  #view.exam-view #examSidebar { position:static !important; top:auto !important; align-self:start; overflow-anchor:none; }
+  /* Visibility only: this element always occupies the same grid slot. */
+  #view.exam-view #examSidebar[data-v252-collapsed="true"] { opacity:0 !important; visibility:hidden !important; pointer-events:none !important; }
+  #view.exam-view .floating-palette { display:grid !important; place-items:center; position:fixed !important; right:max(16px,env(safe-area-inset-right)) !important; bottom:calc(76px + env(safe-area-inset-bottom)) !important; width:46px; min-width:46px; height:46px; min-height:46px; padding:0 !important; margin:0 !important; border-radius:12px; z-index:75; font-size:0 !important; line-height:1; background:var(--deep,#783c2c); color:#fff4e5; border:1px solid var(--gold,#b68742); box-shadow:0 7px 18px #29170b35; visibility:hidden; opacity:0; pointer-events:none; }
+  #view.exam-view .floating-palette[data-v252-visible="true"] { visibility:visible; opacity:1; pointer-events:auto; }
+  #view.exam-view .floating-palette span { font-size:0 !important; }
+
+}
+
+@media(max-width:760px) { #view.exam-view .v252-backtop-wrap { padding-bottom:90px; } }
+
+/* V25.4 — SVG launcher and a compact, independently scrolling question grid. */
+#view.exam-view .floating-palette .v254-icon{display:block;width:24px;height:24px;flex:none;pointer-events:none;}
+#view.exam-view .floating-palette .v254-label{display:inline-flex;align-items:center;gap:3px;white-space:nowrap;}
+@media(min-width:761px){
+ #view.exam-view .floating-palette{background:var(--violet,#963e2c);border:1px solid var(--hero-border,#c18b54);border-radius:13px;color:#fff7e6;}
+ #view.exam-view .floating-palette .v254-label{display:none!important;}
+ #view.exam-view .floating-palette::before{content:none!important;}
+}
+@media(max-width:760px){
+ #view.exam-view .floating-palette{display:inline-flex;align-items:center;justify-content:center;gap:8px;}
+ #view.exam-view .floating-palette .v254-icon{width:20px;height:20px;}
+}
+#modalRoot #modalMask.v254-palette-mask{padding:12px;overscroll-behavior:contain;}
+#modalRoot #modalMask.v254-palette-mask > .modal{
+ display:flex!important;flex-direction:column;gap:10px;box-sizing:border-box;
+ width:min(320px,100%)!important;max-width:320px;max-height:min(86dvh,620px)!important;
+ padding:16px!important;border-radius:16px;overflow:hidden!important;
+}
+.v254-palette-mask .v254-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:none;}
+.v254-palette-mask .v254-heading h2{font-size:20px!important;line-height:1.2;margin:0!important;}
+.v254-palette-mask .v254-heading button{width:36px;min-width:36px;height:36px;min-height:36px;padding:0!important;border-radius:9px;display:grid;place-items:center;font-size:18px;}
+.v254-palette-mask .v254-status{display:flex;align-items:center;justify-content:space-between;gap:6px;flex:none;color:var(--muted);font-size:12px;}
+.v254-palette-mask .v254-status .small-muted{font-size:11px;line-height:1.3;}
+.v254-palette-mask .v254-status .v254-count{white-space:nowrap;font-weight:700;font-variant-numeric:tabular-nums;}
+.v254-palette-mask .progress-track{flex:none;margin:0!important;height:6px;}
+#modalRoot .v254-palette-mask .pal-grid{
+ display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;grid-auto-rows:42px;gap:7px!important;
+ align-content:start;align-items:stretch;justify-items:stretch;flex:0 1 auto;min-height:0;max-height:100%;overflow-y:auto;
+ overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:var(--line) transparent;padding:2px 2px 2px 0;margin:0!important;
+}
+#modalRoot .v254-palette-mask .pal-grid .pal-btn{
+ width:100%!important;min-width:0!important;max-width:none!important;height:42px!important;min-height:42px!important;
+ aspect-ratio:auto!important;box-sizing:border-box;display:grid!important;place-items:center;padding:0!important;border-radius:6px!important;
+ font-size:13px!important;font-weight:750;line-height:1;margin:0!important;
+}
+.v254-palette-mask .legend{flex:none;justify-content:space-between;gap:4px;margin:0!important;font-size:10px;}
+.v254-palette-mask .sidebar-actions{flex:none;display:grid;gap:7px;margin:0!important;}
+.v254-palette-mask .sidebar-actions .btn{min-height:40px;padding:8px 10px;font-size:13px;line-height:1.2;}
+@media(max-height:430px){
+ #modalRoot #modalMask.v254-palette-mask > .modal{max-height:calc(100dvh - 18px)!important;padding:10px!important;gap:6px;}
+ .v254-palette-mask .sidebar-actions{grid-template-columns:1fr 1fr;}
+ .v254-palette-mask .sidebar-actions .btn{min-height:36px;font-size:11px;}
+}
