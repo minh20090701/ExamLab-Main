@@ -1,0 +1,6 @@
+/* ExamLab V24 – lựa chọn thời gian luyện tập */
+.v24-time-choice{display:flex;gap:12px;align-items:flex-start;cursor:pointer;padding:13px 14px;margin:12px 0 14px;border:1px solid var(--line,#dfcbb0);border-radius:12px;background:var(--soft,#f6ede0);color:var(--ink,#382a20);line-height:1.5;text-align:left}
+.v24-time-choice input[type=checkbox]{appearance:auto;accent-color:var(--violet,#993c2c);width:19px;height:19px;min-width:19px;flex:0 0 19px;margin:3px 0 0;padding:0;cursor:pointer}
+.v24-time-choice span{min-width:0;display:block}.v24-time-choice strong{display:block;font-size:14px}.v24-time-choice small{display:block;color:var(--muted,#806e5e);font-size:12px;margin-top:4px}.v24-time-choice:has(input:checked){border-color:var(--gold,#b68742);box-shadow:0 0 0 1px var(--gold,#b68742)}
+#examClock.v24-clock-unlimited{font-size:clamp(12px,1.4vw,16px);font-family:inherit;white-space:nowrap;line-height:1.4;text-align:center;letter-spacing:0}
+@media(max-width:760px){.v24-time-choice{padding:12px 11px;gap:9px}.v24-time-choice strong{font-size:13px}#examClock.v24-clock-unlimited{font-size:11px;padding:8px 6px;max-width:100%;white-space:normal;overflow-wrap:normal}}
