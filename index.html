@@ -14,10 +14,11 @@
 <link href="css/header-stable-v10.css?v=10.1" rel="stylesheet"/>
 <link rel="stylesheet" href="css/header-full-v13.css?v=13.0"><link rel="stylesheet" href="css/examlab-dialogs-v14.css?v=14.0">
 <link rel="stylesheet" href="css/catalog-v17.css?v=17.3">
-<link rel="stylesheet" href="css/calculator-v22.css?v=23.0">
+<link rel="stylesheet" href="css/calculator-v22.css?v=27">
 <style>.v19-catalog-pager{display:flex;gap:10px;justify-content:center;align-items:center;flex-wrap:wrap;margin:24px auto;padding:10px;color:var(--muted);font-size:12px}</style><link rel="stylesheet" href="css/practice-unlimited-v24.css?v=24.0">
 
 <link rel="stylesheet" href="css/answer-sheet-stable-v254.css?v=25.4">
+<link rel="stylesheet" href="css/site-unified-v27.css?v=27">
 </head>
 <body>
 <div class="app" id="app">
@@ -26,14 +27,15 @@
 <button aria-label="Về trang thư viện" class="brand" id="brandHome" type="button">
 <span aria-hidden="true" class="brand-icon">文</span><span class="brand-words"><b>EXAM<span>LAB</span></b><small>TRƯỜNG THI KHOA BẢNG</small></span>
 </button>
-<nav aria-label="Điều hướng" class="header-nav site-nav-v10"><button aria-current="page" class="nav-link is-active" data-page="library" type="button">Tủ đề ôn tập</button><button class="nav-link" data-page="history" type="button">Sổ khoa cử</button><a class="nav-link" href="documents.html">Thư viện tài liệu</a><a class="nav-link" href="study.html">Bấm giờ học</a><button class="nav-link" data-page="guide" type="button">Chỉ dẫn</button><a class="nav-link" data-admin-only="" hidden="" href="admin.html">Quản lý đề</a><a class="nav-link" data-admin-only="" hidden="" href="admin-docs.html">Duyệt tài liệu</a></nav>
+<nav aria-label="Điều hướng" class="header-nav site-nav-v10"><button aria-current="page" class="nav-link is-active" data-page="library" type="button">Tủ đề ôn tập</button><button class="nav-link" data-page="history" type="button">Sổ khoa cử</button><a class="nav-link" href="documents.html">Thư viện tài liệu</a><a class="nav-link" href="study.html">Bấm giờ học</a><button class="nav-link" data-page="guide" type="button">Chỉ dẫn</button><a class="nav-link" href="friends-beta/index.html">Bạn bè <small>(Beta)</small></a></nav>
 <div class="top-actions">
 <button aria-label="Bật hoặc tắt chế độ tối" class="mode-switch-v7" data-mode-v7="" onclick="var r=document.documentElement;var t=r.dataset.theme==='dark'?'light':'dark';r.dataset.theme=t;try{localStorage.setItem('examlab.theme',t)}catch(e){};this.setAttribute('aria-pressed',String(t==='dark'));var m=document.querySelector('meta[name=theme-color]');if(m)m.content=t==='dark'?'#201b19':'#542821';" title="Bấm để đổi chế độ Sáng/Tối" type="button"><span aria-hidden="true" class="mode-indicator-v7"></span><span aria-hidden="true" class="mode-label-light-v7">SÁNG</span><span aria-hidden="true" class="mode-label-dark-v7">TỐI</span></button>
-<button type="button" id="excalcSettingsOpen" class="excalc-settings-trigger" aria-label="Cài đặt" title="Cài đặt" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06-1.91 1.91-.06-.06A1.65 1.65 0 0 0 16 18.4a1.65 1.65 0 0 0-1 1.51V20h-2.7v-.09a1.65 1.65 0 0 0-1.08-1.54 1.65 1.65 0 0 0-1.82.33l-.06.06-1.91-1.91.06-.06A1.65 1.65 0 0 0 7.8 15a1.65 1.65 0 0 0-1.51-1H6.2v-2.7h.09a1.65 1.65 0 0 0 1.54-1.08 1.65 1.65 0 0 0-.33-1.82l-.06-.06 1.91-1.91.06.06A1.65 1.65 0 0 0 11.2 6.8a1.65 1.65 0 0 0 1-1.51V5.2h2.7v.09a1.65 1.65 0 0 0 1.08 1.54 1.65 1.65 0 0 0 1.82-.33l.06-.06 1.91 1.91-.06.06A1.65 1.65 0 0 0 19.4 10.2a1.65 1.65 0 0 0 1.51 1H21v2.7h-.09a1.65 1.65 0 0 0-1.51 1.1Z" transform="translate(-1 -1)"/></svg></button>
+<button type="button" id="excalcSettingsOpen" class="excalc-settings-trigger" aria-label="Cài đặt" title="Cài đặt" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M9 11h1m4 0h1m-6 3h1m4 0h1m-6 3h1m4 0h1"/></svg></button>
 <a aria-label="Xem hồ sơ và tài khoản" class="account-link profile-top-link" href="login.html" id="accountLink"><span aria-hidden="true" class="account-mark">✦</span><span class="account-link-label"><span class="account-pre">Hồ sơ</span><span class="account-word" id="accountLabel">Tài khoản</span></span></a>
 </div>
 </div>
 </header>
+<aside class="site-announcement" aria-label="Thông báo"><span class="announcement-label">Thông báo</span><div class="announcement-window"><p id="announcementText">Chào mừng bạn đến với ExamLab · Chúc bạn học tập hiệu quả!</p></div></aside>
 <main aria-live="polite" class="view" id="view"></main>
 <footer class="footer" id="footer"><div class="foot-decor">❖ ── ✦ ── ❖</div><b>EXAMLAB · KHOA BẢNG</b><span>Chăm học hôm nay · Thành tài mai sau</span></footer>
 <div id="modalRoot"></div>
@@ -51,9 +53,10 @@
 <script src="js/header-account.js?v=8"></script>
 <script src="js/admin-auth.js?v=6"></script>
 <script src="js/role-visibility.js?v=13.0"></script>
-<script src="js/calculator-v22.js?v=23.0"></script>
+<script src="js/calculator-v22.js?v=27"></script>
 <script src="js/practice-unlimited-v24.js?v=24.0"></script>
 
 <script src="js/answer-sheet-stable-v254.js?v=25.4"></script>
+<script src="js/site-unified-v27.js?v=27"></script>
 </body>
 </html>

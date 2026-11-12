@@ -87,7 +87,7 @@ function closeSettings(focus=true){if(!settings)return;settings.hidden=true;sett
 function openSettings(){if(!settings)return;if(!settings.hidden){closeSettings();return}settings.hidden=false;settingsOpen.setAttribute('aria-expanded','true');settings.querySelector('[data-excalc-toggle]').focus({preventScroll:true});}
 function makeUI(){
  settingsOpen=document.getElementById('excalcSettingsOpen');
- const view=document.getElementById('view');
+ const view=document.getElementById('view')||document.querySelector('main');
  if(!view||!settingsOpen)return;
  const calcIcon='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M9 11h1m4 0h1m-6 3h1m4 0h1m-6 3h1m4 0h1"/></svg>';
  root=document.createElement('div');root.className='excalc-root';root.hidden=true;
