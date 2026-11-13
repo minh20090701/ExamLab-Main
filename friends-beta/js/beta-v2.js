@@ -10,6 +10,8 @@
   let isMonth = false;
   let latest = null;
   let latestOverview = null;
+  let latestUserId = null, epoch = 0;
+  function publish(){document.dispatchEvent(new CustomEvent('examlab:duel-summary',{detail:{userId:latestUserId,ready:!!latest,pending:(latest?.duels||[]).filter(d=>d.status==='pending'&&!d.is_challenger&&d.day===latest.server_day).length}}))}
   const fmt = new Intl.NumberFormat('vi-VN');
 
   function node(tag, cls='', text) {
@@ -42,7 +44,9 @@
   }
   async function rpc(name, params={}) {
     if (!db) throw new Error('Không tải được kết nối Supabase.');
+    const generation=epoch;
     const {data,error} = await db.rpc(name,params);
+    if(generation!==epoch)throw Error('Phiên đăng nhập đã thay đổi.');
     if (error) throw error;
     return data;
   }
@@ -67,7 +71,7 @@
     const possible = Number(stats.possible || 0);
     const accuracy = possible ? Math.round(correct*100/possible) : 0;
     const list = [
-      ['🔥', String(stats.streak||0) + ' ngày', 'Chuỗi ngày hiện tại'],
+      ['🔥', String(stats.streak||0) + ' ngày', 'Chuỗi dự thi Beta'],
       ['📚', String(stats.days||0) + ' ngày', 'Ngày đã dự thi'],
       ['⭐', fmt.format(stats.points||0), 'Tổng điểm Beta'],
       ['🎯', accuracy+'%', 'Tỉ lệ đúng tổng thể'],
@@ -204,16 +208,19 @@
     displayMonthly(data.monthly);
     displayDuels(data.duels,data.server_day);
     switchBoard(isMonth);
+    publish();
   }
   async function load(quiet=false) {
     if (loading) {reloadRequested=true;return;}
     loading=true;
+    const generation=epoch;
     try {
       const result=await rpc('examlab_beta_v2_dashboard');
       render(result);
       if (!quiet) showNote('Đã cập nhật thách đấu, thành tích và xếp hạng tháng.');
-    } catch(err) {showNote(errorText(err),true);}
+    } catch(err) {if(generation===epoch)showNote(errorText(err),true);}
     finally {
+      if(generation!==epoch)return;
       loading=false;
       if (reloadRequested) {reloadRequested=false;void load(true);}
     }
@@ -229,13 +236,24 @@
   document.addEventListener('examlab:beta-duel-invite',async event=>{
     const friend=event.detail;
     if (!friend?.userId) return;
+    const generation=epoch;
     if (!(await window.ExamLabDialog.confirm(`Gửi lời thách đấu 10 câu hôm nay tới ${friend.name}?\nKết quả được tính từ lượt thi hôm nay của hai người.`,{title:'Thách đấu bạn bè',confirmText:'Gửi lời thách đấu'}))) return;
+    if(generation!==epoch||!latestOverview?.joined)return;
     void action('invite',friend.userId).catch(err=>showNote(errorText(err),true));
   });
-  document.addEventListener('examlab:beta-updated',event=>{
+  function overviewUpdated(event){
+    if(latestUserId!==event.detail?.userId||!event.detail?.overview?.joined){
+      ++epoch;loading=false;reloadRequested=false;latest=null;latestUserId=event.detail?.userId||null;
+      for(const id of ['personalStats','badgeList','personalHistory','monthlyBoard','duelList'])$(id)?.replaceChildren();
+      for(const id of ['duelCount','duelAlert']){if($(id)){$(id).hidden=true;$(id).textContent='0'}}
+    }
     latestOverview=event.detail?.overview || null;
     if (latestOverview?.joined) void load(true);
-  });
+    else publish();
+  }
+  document.addEventListener('examlab:beta-updated',overviewUpdated);
+  document.addEventListener('examlab:hub-overview',event=>{if(!latestOverview&&event.detail?.overview)overviewUpdated(event)});
+  document.addEventListener('examlab:hub-sync',publish);
   $('rankWeek')?.addEventListener('click',()=>switchBoard(false));
   $('rankMonth')?.addEventListener('click',()=>switchBoard(true));
   $('duelRefresh')?.addEventListener('click',()=>void load(false));

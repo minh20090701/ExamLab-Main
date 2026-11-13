@@ -39,6 +39,8 @@
       : 'Chưa tải được chuỗi học. Kiểm tra kết nối rồi bấm Làm mới.';
   }
   async function rpc(name, args = {}) { const r = await db.rpc(name, args); if (r.error) throw r.error; return r.data; }
+  function publish(){document.dispatchEvent(new CustomEvent('examlab:streak-updated',{detail:{userId:state.user?.id,summary:state.snapshot?.my||null}}))}
+  document.addEventListener('examlab:hub-sync',publish);
   function resetClock() {
     if (!state.snapshot) return;
     const remaining = Math.max(0, Date.parse(state.snapshot.next_reset_at) - (Date.now() + state.offset));
@@ -96,7 +98,7 @@
     $('streakProgress').value = seconds;
     $('streakProgressText').textContent = mine.today_done ? 'Mục tiêu hôm nay đã hoàn thành. Hẹn bạn ngày mai!' : `${Math.floor(seconds / 60)} phút đã ghi nhận · Còn ${Math.ceil((600 - seconds) / 60)} phút, hoặc hoàn thành một bài đủ điều kiện.`;
     if (full) { $('streakSharing').checked = data.sharing === true; calendar(); renderFriends(); }
-    resetClock();
+    resetClock(); publish();
     const available = data.sources?.study || data.sources?.attempt;
     status(available ? 'Đã cập nhật từ lịch sử học được đồng bộ.' : 'Máy chủ chưa có bảng lịch sử học/bài làm. Quản trị viên cần hoàn tất phần cài đặt.', !available);
   }

@@ -20,6 +20,8 @@
 <link rel="stylesheet" href="css/workspace-v28.css?v=28">
 <link rel="stylesheet" href="../css/streak-v30.css?v=30">
 <link rel="stylesheet" href="css/chat-v29.css?v=29">
+<link rel="stylesheet" href="css/hub-v31.css?v=31">
+<link rel="stylesheet" href="../css/festivals-v32.css?v=32">
 </head>
 <body class="friends-page">
   <header class="topbar" id="topbar">
@@ -38,11 +40,11 @@
 <aside class="site-announcement" aria-label="Thông báo"><span class="announcement-label">Thông báo</span><div class="announcement-window"><p id="announcementText">Chào mừng bạn đến với ExamLab · Chúc bạn học tập hiệu quả!</p></div></aside>
 
   <main class="shell">
-    <section class="hero">
+    <section class="hero hub-hero">
       <div class="hero-copy"><div class="eyebrow">PHÒNG GIAO LƯU • THI ĐUA HỌC TẬP</div>
-      <h1>Học cùng bằng hữu.<br><em>Thi đua mỗi ngày.</em></h1>
-      <p>Kết nối bằng Gmail, gửi lời mời kết bạn và cùng chinh phục 10 câu hỏi mới mỗi ngày. Điểm thi đua Beta được lưu riêng, không tác động điểm bài thi ExamLab chính.</p>
-      <div class="hero-tags"><span>✧ Lời mời kết bạn</span><span>◇ 10 câu / 10 phút</span><span>♛ Đua top theo tuần</span><span>⚔ Thách đấu 1–1</span></div></div>
+      <h1>Có bạn đồng hành.<br><em>Có thêm động lực.</em></h1>
+      <p>Một góc nhỏ để giữ lửa học tập: trò chuyện, trao tài liệu và tiến bộ cùng những người bạn.</p>
+      <div class="hero-tags"><span>🔥 Giữ chuỗi mỗi ngày</span><span>✎ Chia sẻ điều hay</span><span>⚔ Cùng nhau thử sức</span></div></div>
       <div class="hero-art" aria-hidden="true"><div class="ring ring-one"></div><div class="ring ring-two"></div><div class="art-star">✦</div><div class="art-text">友</div><div class="art-caption">KẾT GIAO • CẦU TIẾN</div></div>
     </section>
 
@@ -52,7 +54,7 @@
     <section id="loginGate" class="panel auth-panel" hidden>
       <div class="round-icon">⌁</div>
       <h2>Cần đăng nhập để vào Hội bạn</h2>
-      <p>Beta sử dụng tài khoản Supabase đang có của ExamLab. Không cần đăng ký tài khoản mới. Chế độ khách không tham gia bảng xếp hạng.</p>
+      <p>Dùng tài khoản ExamLab của bạn để kết nối, trò chuyện và giữ chuỗi học cùng nhau.</p>
       <a class="btn primary" href="../login.html">Đăng nhập ExamLab</a>
     </section>
 
@@ -110,7 +112,7 @@
               <div class="challenge-top"><span class="eyebrow">THI ĐUA HÔM NAY</span><span class="challenge-mark" aria-hidden="true">♛</span></div>
               <h2>Thử thách mỗi ngày</h2>
               <div class="challenge-big">10 <small>câu hỏi</small><span class="line-mark">/</span> 10 <small>phút</small></div>
-              <p>Chỉ <strong>một lượt mỗi ngày</strong> theo giờ Việt Nam. Mỗi câu đúng được 100 điểm; hệ thống Supabase chấm điểm.</p>
+              <p>Chỉ <strong>một lượt mỗi ngày</strong> theo giờ Việt Nam. Mỗi câu đúng được 100 điểm.</p>
               <button id="startDaily" class="btn accent" type="button">Bắt đầu thi đua</button>
               <div id="dailyNote" class="muted small">Điểm thi đua không cộng vào bài làm ExamLab chính.</div>
             </section>
@@ -132,6 +134,7 @@
         </div>
         <section class="panel progress-panel" id="progressArea">
           <div class="section-head"><div><small class="eyebrow">HÀNH TRÌNH CẦU TIẾN</small><h2>🏅 Thành tích của bạn</h2></div><span class="section-icon" aria-hidden="true">✦</span></div>
+          <p class="muted small">Thành tích của thử thách Beta. Chuỗi học ở mục Tổng quan được tính riêng từ thời gian học và bài làm chính.</p>
           <div id="personalStats" class="progress-stats"><p class="muted">Đang tải số liệu cá nhân…</p></div>
           <h3 class="subhead">Huy hiệu học tập</h3>
           <div id="badgeList" class="badges-grid"></div>
@@ -156,16 +159,18 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="../supabase-config.js"></script>
   <script src="../js/supabase-client.js"></script>
-  <script src="js/beta.js?v=14.0"></script>
-  <script src="js/beta-v2.js?v=14.0"></script>
+  <script src="js/beta.js?v=31"></script>
+  <script src="js/beta-v2.js?v=31"></script>
 <script src="../js/admin-auth.js?v=27"></script>
 <script src="../js/role-visibility.js?v=27"></script>
 <script src="../js/calculator-v22.js?v=27"></script>
 <script src="../js/site-unified-v27.js?v=28"></script>
 <script src="../js/header-account.js?v=28"></script>
 <script src="../js/theme-v28.js?v=28"></script>
-<script src="js/workspace-v28.js?v=29"></script>
-<script src="js/chat-v29.js?v=30"></script>
-<script src="../js/streak-v30.js?v=30"></script>
+<script src="js/workspace-v28.js?v=31"></script>
+<script src="js/chat-v29.js?v=31"></script>
+<script src="../js/streak-v30.js?v=31"></script>
+<script src="js/hub-v31.js?v=31"></script>
+<script src="../js/festivals-v32.js?v=32"></script>
 </body>
 </html>

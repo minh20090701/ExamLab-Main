@@ -4,7 +4,8 @@
   'use strict';
   const $ = id => document.getElementById(id);
   const db = window.ExamLabSupabase;
-  const model = {user:null, overview:null, found:null, session:null, answers:{}, timer:null, submitting:false};
+  const model = {user:null, overview:null, found:null, session:null, answers:{}, timer:null, submitting:false,epoch:0,request:0,boot:0};
+  const emit=(name,detail)=>document.dispatchEvent(new CustomEvent(name,{detail}));
 
   function message(text, type='') {
     const el=$('notice');
@@ -42,7 +43,9 @@
   }
   async function rpc(name, params={}) {
     if(!db) throw Error(window.ExamLabSupabaseError||'Không kết nối được Supabase.');
+    const epoch=model.epoch;
     const {data,error}=await db.rpc(name,params);
+    if(epoch!==model.epoch)throw Error('Phiên đăng nhập đã thay đổi. Vui lòng thử lại.');
     if(error)throw error;
     return data;
   }
@@ -52,7 +55,9 @@
     rows.forEach(row=>area.append(builder(row)));
   }
   async function refresh(showMessage=true) {
-    const o=await rpc('examlab_beta_overview');model.overview=o;
+    if(!model.user)return;
+    const request=++model.request;
+    const o=await rpc('examlab_beta_overview');if(request!==model.request)return;model.overview=o;
     const joined=Boolean(o?.joined);
     $('joinCard').hidden=joined;
     $('participationArea').hidden=!joined;
@@ -71,8 +76,10 @@
         {label:'Thu hồi',cls:'subtle',fn:()=>friendAction(row.id,'cancel')}
       ]));
       fillList('friendList',o.friends,'Chưa có bạn bè. Hãy tìm một người bằng Gmail!',row=>personCard(row,'Đã kết bạn',[
+        {label:'Nhắn tin',cls:'primary',fn:()=>emit('examlab:chat-open',{userId:row.user_id})},
+        {label:'Tài liệu',cls:'subtle',fn:()=>emit('examlab:share-to',{userId:row.user_id})},
         {label:'⚔ Thách đấu',cls:'primary',fn:()=>document.dispatchEvent(new CustomEvent('examlab:beta-duel-invite',{detail:{userId:row.user_id,name:row.name}}))},
-        {label:'Hủy kết bạn',cls:'danger',fn:async()=>{if(await window.ExamLabDialog.confirm('Bạn muốn hủy kết bạn với '+row.name+'?',{title:'Hủy kết bạn',confirmText:'Hủy kết bạn',danger:true}))await friendAction(row.id,'remove')}}
+        {label:'Hủy kết bạn',cls:'danger',fn:async()=>{const epoch=model.epoch;if(await window.ExamLabDialog.confirm('Bạn muốn hủy kết bạn với '+row.name+'?',{title:'Hủy kết bạn',confirmText:'Hủy kết bạn',danger:true})&&epoch===model.epoch)await friendAction(row.id,'remove')}}
       ]));
       const board=$('weeklyBoard');board.replaceChildren();
       (o.leaderboard||[]).forEach((entry,i)=>{
@@ -83,7 +90,7 @@
         row.append(info,make('strong','rank-points',entry.points||0));board.append(row)
       });
     }
-    document.dispatchEvent(new CustomEvent('examlab:beta-updated',{detail:{overview:o}}));
+    emit('examlab:beta-updated',{overview:o,userId:model.user.id});
     if(showMessage)message('Đã cập nhật Hội bạn và bảng thi đua.','ok');
   }
   async function friendAction(id, action) {
@@ -193,19 +200,37 @@
     window.addEventListener('pagehide',()=>{if(model.timer)clearInterval(model.timer)});
   }
   async function bootstrap(){
-    bind();
+    const request=++model.boot;
     if(!db){message(window.ExamLabSupabaseError||'Không tải được thư viện Supabase. Kiểm tra mạng và đường dẫn ../supabase-config.js.','error');return}
     try{
       const {data,error}=await db.auth.getUser();if(error)throw error;
+      if(request!==model.boot)return;
       const user=data?.user;
       if(!user){$('loginGate').hidden=false;message('Bạn cần đăng nhập tài khoản ExamLab để dùng Beta.');return}
       model.user=user;
+      $('loginGate').hidden=true;
+      emit('examlab:beta-session',{user:{id:user.id}});
       $('emailMe').textContent=user.email||'';
       $('app').hidden=false;
       $('displayName').value=String(user.user_metadata?.display_name||user.email?.split('@')[0]||'Sĩ tử').slice(0,40);
       await refresh(false);
       message('Hội bạn Beta đã sẵn sàng!','ok');
-    }catch(error){message(errMessage(error),'error');$('loginGate').hidden=false}
+    }catch(error){if(request===model.boot){message(errMessage(error),'error');$('loginGate').hidden=false}}
   }
+  function clearAccount(){
+    ++model.epoch;++model.request;++model.boot;model.user=null;model.overview=null;model.found=null;model.submitting=false;
+    exitQuiz();$('quizQuestions').replaceChildren();$('app').hidden=true;$('participationArea').hidden=true;$('loginGate').hidden=false;
+    for(const id of ['emailMe','findResult','incoming','outgoing','friendList','weeklyBoard','dailyNote'])$(id).replaceChildren();
+    $('profileForm').reset();$('findForm').reset();$('startDaily').disabled=false;$('startDaily').textContent='Bắt đầu thi đua';
+    emit('examlab:beta-session',{user:null});emit('examlab:beta-updated',{overview:null,userId:null});
+    message('Đăng nhập để tiếp tục học cùng bạn bè.');
+  }
+  document.addEventListener('examlab:hub-sync',e=>{if(!e.detail?.skipSession)emit('examlab:beta-session',{user:model.user?{id:model.user.id}:null});if(model.user)emit('examlab:hub-overview',{overview:model.overview,userId:model.user.id})});
+  document.addEventListener('examlab:beta-refresh',async()=>{
+    if(!model.user)return;const epoch=model.epoch,userId=model.user.id;emit('examlab:hub-refresh-state',{userId,busy:true});
+    try{await refresh()}catch(e){if(epoch===model.epoch)message(errMessage(e),'error')}finally{if(epoch===model.epoch)emit('examlab:hub-refresh-state',{userId,busy:false})}
+  });
+  db?.auth?.onAuthStateChange((event,session)=>{if(event==='SIGNED_OUT'||(model.user&&model.user.id!==session?.user?.id))clearAccount();if(event==='SIGNED_IN'&&!model.user){++model.boot;setTimeout(bootstrap,0)}});
+  bind();
   bootstrap();
 })();

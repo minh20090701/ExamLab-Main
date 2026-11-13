@@ -11,9 +11,10 @@
     <p class="chat-hint">Trò chuyện riêng với bạn bè. Tự cập nhật mỗi 30 giây khi mở trang; không hiển thị trạng thái online.</p>
     <p id="chatStatus" class="chat-status" role="status"></p>
     <div class="chat-grid">
-      <aside class="chat-sidebar"><label for="chatSearch">Tìm người trò chuyện</label><input id="chatSearch" type="search" placeholder="Nhập tên bạn bè"><p class="chat-hint">★ Ghim bạn thường liên hệ trên thiết bị này.</p><div id="chatFriends" class="chat-friends"></div></aside>
+      <aside class="chat-sidebar"><label for="chatSearch">Tìm người trò chuyện</label><input id="chatSearch" type="search" placeholder="Nhập tên, có hoặc không dấu"><div class="chat-filter-row"><label><input id="chatOnlyUnread" type="checkbox"> Chỉ tin chưa đọc</label></div><p class="chat-hint">★ Ghim bạn thường liên hệ trên thiết bị này.</p><div id="chatFriends" class="chat-friends"></div></aside>
       <div class="chat-conversation">
-        <div class="chat-peer"><h3 id="chatPeerName">Chọn một người bạn</h3><div class="chat-actions"><button id="chatShare" class="btn subtle small" type="button" disabled>Tài liệu / ghi chú</button><button id="chatDuel" class="btn subtle small" type="button" disabled>Thách đấu</button></div></div>
+        <div class="chat-peer"><button id="chatBack" type="button" class="btn subtle small chat-mobile-back">← Danh sách bạn</button><h3 id="chatPeerName">Chọn một người bạn</h3><div class="chat-actions"><button id="chatShare" class="btn subtle small" type="button" disabled>Tài liệu / ghi chú</button><button id="chatDuel" class="btn subtle small" type="button" disabled>Thách đấu</button></div></div>
+        <div class="chat-message-search"><label for="chatMessageSearch">Tìm trong các tin đã tải</label><input id="chatMessageSearch" type="search" maxlength="200" placeholder="Nhập nội dung cần tìm"><p id="chatSearchResult" class="chat-search-result" role="status"></p></div>
         <button id="chatOlder" class="btn subtle small" type="button" hidden>Tải tin cũ hơn</button>
         <p id="chatHistoryHint" class="chat-hint" hidden>Đang xem lịch sử. Bấm Làm mới để quay về các tin mới nhất.</p>
         <div id="chatMessages" class="chat-messages" role="region" aria-label="Nội dung trò chuyện" tabindex="0"><p class="empty">Chọn bạn bè bên trái để bắt đầu.</p></div>
@@ -23,39 +24,47 @@
     </div>`;
   mount.after(box);
   const $ = id => document.getElementById(id);
-  const state = { user: null, friends: [], summary: [], peer: null, messages: [], more: false, history: false, epoch: 0, threadRequest: 0, bootRequest: 0, drafts: new Map(), pending: new Map(), pinned: new Set() };
+  const state = { user: null, friends: [], summary: [], summaryReady:false, peer: null, messages: [], more: false, history: false, epoch: 0, threadRequest: 0, bootRequest: 0, drafts: new Map(), pending: new Map(), pinned: new Set() };
+  const normalize=s=>String(s).normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/đ/g,'d').replace(/Đ/g,'D').toLocaleLowerCase('vi');
+  function publish(){document.dispatchEvent(new CustomEvent('examlab:chat-summary',{detail:{userId:state.user?.id,ready:state.summaryReady,unread:state.summary.reduce((n,r)=>n+Number(r.unread||0),0)}}))}
   const node = (tag, text, cls = '') => { const e = document.createElement(tag); e.textContent = text; e.className = cls; return e; };
   function status(text, error = false) { $('chatStatus').textContent = text; $('chatStatus').classList.toggle('error', error); }
   function errorText(e) { const m = String(e?.message || e); return /schema cache|does not exist|Could not find the function/i.test(m) ? 'Chưa cài nhắn tin V29. Chạy docs/SETUP_FRIEND_CHAT_V29.sql rồi nhấn Làm mới.' : m; }
   async function rpc(name, args = {}) { if (!db || !state.user) throw Error('Cần đăng nhập để nhắn tin.'); const r = await db.rpc(name, args); if (r.error) throw r.error; return r.data; }
   async function busy(button, fn) { if (button.disabled) return; button.disabled = true; const epoch = state.epoch; try { await fn(); } catch (e) { if (epoch === state.epoch) status(errorText(e), true); } finally { button.disabled = false; controls(); } }
-  function controls() { const active = !!state.peer && !!state.user; for (const id of ['chatShare', 'chatDuel', 'chatText']) $(id).disabled = !active; if (!active) $('chatSend').disabled = true; $('chatRead').disabled = !state.messages.some(m => m.recipient_id === state.user?.id && !m.read_at && !m.revoked_at); }
+  function controls() { const active = !!state.peer && !!state.user; box.classList.toggle('has-peer',active);for (const id of ['chatShare', 'chatDuel', 'chatText','chatMessageSearch']) $(id).disabled = !active; if (!active) $('chatSend').disabled = true; $('chatRead').disabled = !state.messages.some(m => m.recipient_id === state.user?.id && !m.read_at && !m.revoked_at); }
   function pinKey() { return 'examlab.chat.pins.v29.' + state.user.id; }
   function loadPins() { try { const ids = JSON.parse(localStorage.getItem(pinKey()) || '[]'); state.pinned = new Set(Array.isArray(ids) ? ids.filter(v => typeof v === 'string') : []); } catch { state.pinned = new Set(); } }
   function totalUnread() { const count = state.summary.reduce((n, r) => n + Number(r.unread || 0), 0); $('chatTotal').textContent = count > 99 ? '99+' : String(count); $('chatTotal').hidden = !count; const jump = document.querySelector('[data-chat-jump]'); if (jump) jump.textContent = 'Tin nhắn' + (count ? ' (' + (count > 99 ? '99+' : count) + ')' : ''); }
   function renderFriends() {
-    const list = $('chatFriends'), search = $('chatSearch').value.trim().toLocaleLowerCase('vi'); list.replaceChildren();
+    const list = $('chatFriends'), search = normalize($('chatSearch').value.trim()); list.replaceChildren();
     const summaries = new Map(state.summary.map(r => [r.peer_id, r]));
-    const friends = state.friends.filter(f => f.name.toLocaleLowerCase('vi').includes(search)).sort((a, b) => Number(state.pinned.has(b.user_id)) - Number(state.pinned.has(a.user_id)) || Number(summaries.get(b.user_id)?.unread || 0) - Number(summaries.get(a.user_id)?.unread || 0) || String(summaries.get(b.user_id)?.latest_at || '').localeCompare(String(summaries.get(a.user_id)?.latest_at || '')) || a.name.localeCompare(b.name, 'vi'));
+    const friends = state.friends.filter(f => normalize(f.name).includes(search)&&(!$('chatOnlyUnread').checked||Number(summaries.get(f.user_id)?.unread||0)>0)).sort((a, b) => Number(state.pinned.has(b.user_id)) - Number(state.pinned.has(a.user_id)) || Number(summaries.get(b.user_id)?.unread || 0) - Number(summaries.get(a.user_id)?.unread || 0) || String(summaries.get(b.user_id)?.latest_at || '').localeCompare(String(summaries.get(a.user_id)?.latest_at || '')) || a.name.localeCompare(b.name, 'vi'));
     for (const f of friends) {
       const row = node('div', '', 'chat-friend-row');
       const open = node('button', '', 'chat-friend'); open.type = 'button'; open.setAttribute('aria-pressed', String(state.peer === f.user_id));
       open.append(node('span', f.name, 'chat-friend-name'));
+      open.dataset.initial=f.name.trim().charAt(0).toLocaleUpperCase('vi');
       const unread = Number(summaries.get(f.user_id)?.unread || 0); if (unread) open.append(node('span', unread > 99 ? '99+' : unread, 'chat-count'));
       open.onclick = () => selectPeer(f.user_id);
       const pin = node('button', state.pinned.has(f.user_id) ? '★' : '☆', 'chat-pin'); pin.type = 'button'; pin.setAttribute('aria-label', (state.pinned.has(f.user_id) ? 'Bỏ ghim ' : 'Ghim ') + f.name); pin.setAttribute('aria-pressed', String(state.pinned.has(f.user_id)));
       pin.onclick = () => { state.pinned.has(f.user_id) ? state.pinned.delete(f.user_id) : state.pinned.add(f.user_id); try { localStorage.setItem(pinKey(), JSON.stringify([...state.pinned])); } catch { status('Không lưu được ghim trên thiết bị. Ghim chỉ giữ trong lần mở trang này.', true); } renderFriends(); };
       row.append(open, pin); list.append(row);
     }
-    if (!list.children.length) list.append(node('p', search ? 'Không có tên phù hợp.' : 'Chưa có bạn bè. Kết bạn ở phần bên dưới để nhắn tin.', 'empty'));
+    if (!list.children.length) list.append(node('p', search ? 'Không có tên phù hợp.' : $('chatOnlyUnread').checked?'Không có cuộc trò chuyện chưa đọc.':'Chưa có bạn bè. Mở mục Bạn bè để kết nối nhé.', 'empty'));
     totalUnread();
+    publish();
   }
   function renderMessages(scrollBottom = false) {
     const list = $('chatMessages'), top = list.scrollTop, oldHeight = list.scrollHeight, nearBottom = oldHeight - top - list.clientHeight < 60;
     list.replaceChildren();
+    const query=normalize($('chatMessageSearch').value.trim());let matches=0;
     for (const m of state.messages) {
+      if(query&&(m.revoked_at||!normalize(m.body).includes(query)))continue;
+      if(query)matches++;
       const mine = m.sender_id === state.user?.id;
       const item = node('article', '', 'chat-message' + (mine ? ' mine' : ''));
+      item.classList.toggle('matched',!!query);
       item.append(node('p', m.revoked_at ? 'Tin nhắn đã được thu hồi' : m.body, m.revoked_at ? 'chat-revoked' : ''));
       const meta = node('div', '', 'chat-message-meta');
       meta.append(node('time', new Date(m.created_at).toLocaleString('vi-VN')));
@@ -73,12 +82,13 @@
       }
       item.append(meta); list.append(item);
     }
-    if (!list.children.length) list.append(node('p', state.peer ? 'Chưa có tin nhắn. Gửi lời chào đầu tiên nhé.' : 'Chọn một người bạn để mở trò chuyện.', 'empty'));
+    if (!list.children.length) list.append(node('p', query?'Không tìm thấy trong các tin đã tải. Tải tin cũ hơn để tìm tiếp.':state.peer ? 'Chưa có tin nhắn. Gửi lời chào đầu tiên nhé.' : 'Chọn một người bạn để mở trò chuyện.', 'empty'));
+    $('chatSearchResult').textContent=query?matches+' kết quả trong '+state.messages.length+' tin đã tải. Tìm kiếm không đánh dấu đã đọc.':'';
     $('chatOlder').hidden = !state.more; $('chatHistoryHint').hidden = !state.history;
     if (scrollBottom || nearBottom) list.scrollTop = list.scrollHeight; else list.scrollTop = top;
     controls();
   }
-  async function summary() { const epoch = state.epoch; const rows = await rpc('examlab_v29_chat_summary'); if (epoch !== state.epoch) return; state.summary = (rows || []).filter(r => state.friends.some(f => f.user_id === r.peer_id)); renderFriends(); }
+  async function summary() { const epoch = state.epoch; const rows = await rpc('examlab_v29_chat_summary'); if (epoch !== state.epoch) return; state.summaryReady=true;state.summary = (rows || []).filter(r => state.friends.some(f => f.user_id === r.peer_id)); renderFriends(); }
   async function thread(older = false) {
     if (!state.peer) return;
     const peer = state.peer, epoch = state.epoch, request = ++state.threadRequest;
@@ -98,6 +108,7 @@
     if (!state.friends.some(f => f.user_id === id) || state.peer === id) return;
     if (state.peer) state.drafts.set(state.peer, $('chatText').value);
     ++state.threadRequest; state.peer = id; state.messages = []; state.more = false; state.history = false;
+    $('chatMessageSearch').value='';
     $('chatPeerName').textContent = state.friends.find(f => f.user_id === id).name;
     $('chatText').value = state.drafts.get(id) || ''; $('chatSend').disabled = false; count(); renderFriends(); renderMessages(true); status('Đang tải trò chuyện…');
     const epoch = state.epoch;
@@ -105,6 +116,7 @@
   }
   function applyFriends(rows) {
     state.friends = (rows || []).map(f => ({ user_id: f.user_id, name: String(f.name || 'Bạn bè') }));
+    state.summary=state.summary.filter(r=>state.friends.some(f=>f.user_id===r.peer_id));
     if (state.peer && !state.friends.some(f => f.user_id === state.peer)) { ++state.threadRequest; state.drafts.delete(state.peer); state.pending.delete(state.peer); state.peer = null; state.messages = []; state.more = false; state.history = false; $('chatText').value = ''; $('chatPeerName').textContent = 'Chọn một người bạn'; renderMessages(); status('Không còn kết bạn với người đang trò chuyện.', true); }
     renderFriends(); controls();
   }
@@ -132,6 +144,17 @@
     });
   };
   $('chatSearch').oninput = renderFriends;
+  $('chatOnlyUnread').onchange=renderFriends;$('chatMessageSearch').oninput=()=>renderMessages(true);
+  $('chatBack').onclick=()=>{if(state.peer)state.drafts.set(state.peer,$('chatText').value);++state.threadRequest;state.peer=null;state.messages=[];state.more=false;state.history=false;$('chatText').value='';$('chatMessageSearch').value='';$('chatPeerName').textContent='Chọn một người bạn';renderFriends();renderMessages();count();$('chatSearch').focus()};
+  document.addEventListener('examlab:chat-open',async e=>{
+    const peer=e.detail?.userId,epoch=state.epoch;if(!state.user||typeof peer!=='string')return;
+    if(!state.friends.some(f=>f.user_id===peer))await refresh(true);
+    if(epoch!==state.epoch)return;
+    if(!state.friends.some(f=>f.user_id===peer)){status('Chưa mở được người bạn này. Bấm Làm mới để kiểm tra lại.',true);return}
+    await selectPeer(peer);if(epoch!==state.epoch||state.peer!==peer)return;
+    box.scrollIntoView({behavior:'smooth',block:'start'});$('chatText').focus({preventScroll:true});
+  });
+  document.addEventListener('examlab:hub-sync',publish);
   $('chatOlder').onclick = () => busy($('chatOlder'), () => thread(true));
   $('chatRead').onclick = () => busy($('chatRead'), async () => {
     const peer = state.peer, epoch = state.epoch, ids = state.messages.filter(m => m.recipient_id === state.user.id && !m.read_at && !m.revoked_at).slice(-200).map(m => m.id);
@@ -162,7 +185,7 @@
   }
   $('chatRefresh').onclick = () => busy($('chatRefresh'), () => state.user ? refresh(true) : boot());
   document.addEventListener('examlab:beta-updated', e => { if (state.user) { applyFriends(e.detail?.overview?.friends); summary().catch(err => status(errorText(err), true)); } });
-  function reset() { ++state.epoch; ++state.bootRequest; ++state.threadRequest; state.user = null; state.peer = null; state.friends = []; state.messages = []; state.summary = []; state.more = false; state.history = false; state.drafts.clear(); state.pending.clear(); state.pinned.clear(); $('chatText').value = ''; $('chatPeerName').textContent = 'Chọn một người bạn'; box.hidden = true; renderFriends(); renderMessages(); count(); }
+  function reset() { ++state.epoch; ++state.bootRequest; ++state.threadRequest; state.user = null; state.peer = null; state.friends = []; state.messages = []; state.summary = []; state.summaryReady=false;$('chatSearch').value='';$('chatOnlyUnread').checked=false;$('chatMessageSearch').value=''; state.more = false; state.history = false; state.drafts.clear(); state.pending.clear(); state.pinned.clear(); $('chatText').value = ''; $('chatPeerName').textContent = 'Chọn một người bạn'; box.hidden = true; renderFriends(); renderMessages(); count(); }
   async function boot() {
     const request = ++state.bootRequest;
     try { if (!db) return; const r = await db.auth.getUser(); if (r.error) throw r.error; if (request !== state.bootRequest) return; if (!r.data?.user) { reset(); return; } state.user = r.data.user; box.hidden = false; loadPins(); await refresh(true); } catch (e) { if (request === state.bootRequest) status(errorText(e), true); }
