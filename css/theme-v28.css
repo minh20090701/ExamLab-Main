@@ -1,0 +1,26 @@
+/* Shared native controls and contrast. Keep site-specific component layouts. */
+html:not([data-theme=dark]){color-scheme:light}
+html[data-theme=dark]{color-scheme:dark}
+body input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),body textarea,body select{background:var(--field);color:var(--ink);border-color:var(--line)}
+body input::placeholder,body textarea::placeholder{color:var(--muted);opacity:1}
+.topbar .account-link-label{min-width:0}.topbar .account-word{display:block;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.friends-page{--text:var(--ink);--panel:var(--paper);--panel2:var(--soft);--radius:19px;background:var(--bg);color:var(--ink)}
+html:not([data-theme=dark]):has(body.friends-page){--bg:#f4eee0;--paper:#fffaf0;--ink:#382a20;--text:#382a20;--muted:#70604f;--line:#ddcbb0;--gold:#865d29;--good:#317553;--danger:#a94b47}
+.friends-page .hero{background:linear-gradient(120deg,var(--paper),var(--soft2));border:1px solid var(--hero-border);box-shadow:var(--shadow)}
+.friends-page .hero h1{color:var(--heroink)}.friends-page .hero h1 em{color:var(--violet)}.friends-page .hero p{color:var(--ink)}
+.friends-page .hero-tags span,.friends-page .beta-jump a{background:var(--soft);color:var(--ink);border-color:var(--line)}
+.friends-page .art-text,.friends-page .art-caption,.friends-page .art-star{color:var(--gold)}
+.friends-page .panel,.friends-page .quiz-box,.friends-page .quiz-actions{background:var(--paper);border-color:var(--line);color:var(--ink)}
+.friends-page :is(.list-card,.mini-stat,.rank-row,.duel-card,.progress-stat,.badge-card,.history-item,.quiz-q,.quiz-option,.search-result,.rank-tabs,.joined-setup){background:var(--soft);border-color:var(--line);color:var(--ink)}
+.friends-page :is(.rank-row.me,.rank-tab.active,.quiz-option:has(input:checked)){background:var(--soft2);color:var(--ink);border-color:var(--gold)}
+.friends-page :is(.subhead,.mini-stat strong,.challenge-big,.rank-number,.rank-points,.quiz-q legend,.progress-stat strong,.badge-card strong,.history-head h3,.history-score){color:var(--ink)}
+.friends-page :is(.mini-stat span,.list-card small,.rank-info span,.duel-main small,.progress-stat small,.badge-card small,.history-info small,.beta-safety,.quiz-help,.empty,.rank-tab,.duel-scores){color:var(--muted)}
+.friends-page .challenge{background:var(--soft2);border-color:var(--hero-border)}.friends-page .challenge p,.friends-page .challenge-big small{color:var(--ink)}
+.friends-page .btn.subtle{background:var(--soft2);color:var(--ink);border-color:var(--line)}.friends-page .btn.danger{background:var(--badbg);color:var(--bad);border-color:var(--bad)}
+.friends-page .notice{background:var(--soft);color:var(--ink);border-color:var(--line)}
+.friends-page .notice.is-ok,.friends-page .v2-inline-note{background:var(--goodbg);color:var(--good);border-color:var(--good)}
+.friends-page .notice.is-error,.friends-page .v2-inline-note.is-error{background:var(--badbg);color:var(--bad);border-color:var(--bad)}
+.friends-page .quiz-timer,.friends-page .duel-status{background:var(--soft2);color:var(--ink);border-color:var(--line)}
+.friends-page .duel-status.win{background:var(--goodbg);color:var(--good)}.friends-page .badge-earned{color:var(--good)}
+.friends-page .check-row,.friends-page .empty{border-color:var(--line)}
+.friends-page .profile-form>label:first-child{color:var(--ink)}

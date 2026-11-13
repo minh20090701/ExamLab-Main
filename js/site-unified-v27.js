@@ -24,9 +24,6 @@
    show(content);status.textContent='Đã cập nhật thông báo cho toàn hệ thống.';
   }catch(e){status.textContent='Không lưu được: '+(e.message||'Kiểm tra kết nối.')}finally{button.disabled=false}
  });
- // Account destination stays within the project, including GitHub Pages subpaths.
- const account=document.getElementById('accountLink');
- if(account)account.href=new URL('profile.html',new URL('../',document.currentScript.src)).href;
  refresh();setInterval(()=>{if(!document.hidden)refresh()},60000);
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh()});
 })();

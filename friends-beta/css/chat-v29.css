@@ -1,0 +1,22 @@
+.friend-chat{margin:20px 0;scroll-margin-top:20px}.friend-chat[hidden],.friend-chat [hidden]{display:none!important}
+.chat-heading,.chat-peer,.chat-compose-bottom{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.chat-heading h2{display:flex;align-items:center;gap:10px}.chat-count{display:inline-flex;align-items:center;justify-content:center;min-width:23px;border-radius:30px;padding:2px 7px;background:var(--violet);color:var(--paper);font:700 12px system-ui}
+.chat-hint,.chat-status{color:var(--muted);font-size:12px;line-height:1.6;margin:12px 0}.chat-status.error{color:var(--bad)}
+.chat-grid{display:grid;grid-template-columns:260px minmax(0,1fr);gap:18px}.chat-sidebar,.chat-conversation{min-width:0}
+.friend-chat label{font-size:13px;font-weight:700;display:block;margin-bottom:6px}
+.friend-chat input,.friend-chat textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:10px;background:var(--field);color:var(--ink);font:inherit;resize:vertical}
+.chat-friends{display:grid;gap:8px;max-height:540px;overflow:auto;align-content:start}.chat-friend-row{display:flex;gap:5px}
+.chat-friend{display:flex;align-items:center;justify-content:space-between;gap:8px;flex:1;min-width:0;border:1px solid var(--line);border-radius:11px;padding:12px;background:var(--soft);color:var(--ink);text-align:left}
+.chat-friend-name{overflow-wrap:anywhere}.chat-friend[aria-pressed=true]{border-color:var(--gold);background:var(--soft2);box-shadow:inset 3px 0 var(--gold)}
+.chat-pin{flex:none;width:38px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--gold);font-size:21px}
+.chat-peer{padding-bottom:12px;border-bottom:1px solid var(--line)}.chat-peer h3{font-size:17px;overflow-wrap:anywhere;margin:0}.chat-actions{display:flex;gap:6px;flex-wrap:wrap}
+.chat-messages{height:360px;overflow:auto;padding:15px 4px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain;scrollbar-width:thin}
+.chat-message{max-width:85%;width:max-content;min-width:140px;align-self:flex-start;border:1px solid var(--line);border-radius:14px 14px 14px 3px;background:var(--soft);color:var(--ink);padding:10px 14px;flex:none}
+.chat-message.mine{align-self:flex-end;background:var(--soft2);border-radius:14px 14px 3px 14px}
+.friend-chat .chat-message p{white-space:pre-wrap;overflow-wrap:anywhere;margin:0;color:var(--ink);font-size:14px}.friend-chat .chat-message .chat-revoked{font-style:italic;color:var(--muted)}
+.chat-message-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:7px;font-size:10px;color:var(--muted)}
+.chat-revoke{border:0;background:transparent;color:var(--muted);padding:4px;font-size:11px;text-decoration:underline}
+#chatForm{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}.chat-compose-bottom{margin-top:8px}.chat-compose-bottom small{font-size:11px;color:var(--muted)}
+.friend-chat button:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+@media(max-width:760px){.chat-grid{grid-template-columns:1fr}.chat-friends{max-height:190px;grid-template-columns:repeat(2,minmax(0,1fr))}.chat-messages{height:330px}.chat-message{max-width:92%}.friend-chat{padding:18px}}
+@media(max-width:420px){.chat-friends{grid-template-columns:1fr}.chat-compose-bottom{align-items:stretch}.chat-compose-bottom button{width:100%}}

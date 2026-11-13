@@ -28,6 +28,6 @@
    const {error}=await db.from('examlab_materials').delete().eq('id',id);if(error)throw error;
    return true;
  }
- window.ExamLabDocumentsStore={mode:'supabase',maxBytes:LIMIT,connect,getAll,getFile,checkFile,create,update,remove};
+ window.ExamLabDocumentsStore={mode:'supabase',maxBytes:LIMIT,connect,getAll,getById:async id=>mapDoc(await getDoc(id)),getFile,checkFile,create,update,remove};
 })();
 

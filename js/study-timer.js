@@ -217,6 +217,7 @@
       persistStudyHistory();renderStudyHistory();
       try{localStorage.setItem(IMPORT_KEY,'done')}catch(_){}
       syncLastSuccess=Date.now();
+      document.dispatchEvent(new CustomEvent('examlab:study-synced'));
       syncRetryAt=0;
       showSyncStatus(hasPending()?'Đang hoàn tất các thay đổi còn lại…':'✓ Đã đồng bộ · Lịch sử học có trên các thiết bị đăng nhập.','success');
       if(hasPending())planSync(1000);
