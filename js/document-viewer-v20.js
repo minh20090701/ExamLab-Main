@@ -4,8 +4,10 @@
  const LIB='https://cdn.jsdelivr.net/npm/pdfjs-dist@5.4.624/';
  const supported=new Set(['pdf','png','jpg','jpeg','webp','txt','md']);
  let library=null, active=null;
- const api={supports:ext=>supported.has(String(ext).toLowerCase()),open};
+ const api={supports:ext=>supported.has(String(ext).toLowerCase()),open,close};
  window.ExamLabDocumentViewer=api;
+ let viewerUser;
+ window.ExamLabSupabase?.auth?.onAuthStateChange((event,session)=>{const next=session?.user?.id||null;if(event==='SIGNED_OUT'||(viewerUser!==undefined&&next!==viewerUser))close();viewerUser=next;});
  function loadPDF(){
   if(!library)library=import(LIB+'legacy/build/pdf.mjs').then(pdf=>{pdf.GlobalWorkerOptions.workerSrc=LIB+'legacy/build/pdf.worker.mjs';return pdf}).catch(e=>{library=null;throw e});
   return library;

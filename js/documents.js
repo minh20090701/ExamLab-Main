@@ -5,6 +5,7 @@
  const SUBJECTS={toan:'Toán học',ly:'Vật lý',hoa:'Hóa học',sinh:'Sinh học'};
  const icons={pdf:'▧',doc:'▤',docx:'▤',ppt:'▥',pptx:'▥',xls:'▦',xlsx:'▦',txt:'☷',md:'☷',png:'▣',jpg:'▣',jpeg:'▣',webp:'▣'};
  const state={tab:'public',subject:'all',search:'',docs:[],session:null};
+ let authVersion=0,loadVersion=0,sessionEvent=0,linkedVersion=-1;
  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
  const fmtSize=n=>n<1048576?(n/1024).toFixed(1)+' KB':(n/1048576).toFixed(1)+' MB';
  const date=s=>new Date(s).toLocaleDateString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric'});
@@ -31,7 +32,14 @@
   $('#statMine').textContent=state.docs.filter(d=>uid()&&d.ownerId===uid()).length;
   $('#statPending').textContent=state.docs.filter(d=>uid()&&d.ownerId===uid()&&d.status==='pending').length;
  }
- async function reload(){state.docs=await store.getAll();render()}
+ async function reload(){const request=++loadVersion,version=authVersion;const docs=await store.getAll();if(request!==loadVersion||version!==authVersion)return false;state.docs=docs;render();return true}
+ function setSession(next){
+  if(state.session?.id!==next?.id||state.session?.kind!==next?.kind){
+   ++authVersion;++loadVersion;state.docs=[];closeDialog();window.ExamLabDocumentViewer?.close?.();
+   $('#docsUploadForm').reset();$('#docsDialogContent').replaceChildren();$('#saveDocBtn').disabled=false;$('#saveDocBtn').textContent='Lưu tài liệu';
+  }
+  state.session=next;render();
+ }
  function openDialog(){if(state.session?.kind!=='supabase-account'){toast('Hãy đăng nhập tài khoản email để đăng tài liệu.',true);return}$('#docsUploadForm').hidden=false;$('#docsDialogContent').hidden=true;$('#dialogTitle').textContent='Đăng tài liệu';$('#docsUploadForm').reset();$('#fileLabel').textContent='Chọn hoặc thả file tài liệu';$('#docsOverlay').hidden=false;document.body.style.overflow='hidden';$('#docTitle').focus()}
  function closeDialog(){$('#docsOverlay').hidden=true;document.body.style.overflow='';}
  function showDetails(id){const d=state.docs.find(x=>x.id===id),mine=d?.ownerId===uid();if(!d||(!mine&&!(d.visibility==='public'&&d.status==='approved'))){toast('Không tìm thấy tài liệu có thể truy cập.',true);return}
@@ -45,7 +53,7 @@
  async function handleUpload(ev){ev.preventDefault();const form=ev.currentTarget,file=$('#docFile').files?.[0];if(state.session?.kind!=='supabase-account'){toast('Bạn cần đăng nhập tài khoản email trước khi tải tài liệu lên.',true);return}const title=$('#docTitle').value.trim();if(!title){toast('Vui lòng nhập tên tài liệu.',true);return}if(!file){toast('Chưa chọn file tài liệu.',true);return}const btn=$('#saveDocBtn');try{store.checkFile(file);btn.disabled=true;btn.textContent='Đang lưu...';await store.create({title,subject:$('#docSubject').value,description:$('#docDescription').value.trim(),visibility:$('#docVisibility').value,ownerId:uid(),ownerName:state.session?.name||'Sĩ tử'},file);closeDialog();state.tab='mine';document.querySelectorAll('[data-tab]').forEach(b=>b.classList.toggle('active',b.dataset.tab==='mine'));await reload();toast('Đã lưu tài liệu'+($('#docVisibility').value==='public'?' và gửi chờ duyệt.':'.'))}catch(e){console.error(e);toast(e.message||'Không thể lưu. Thử file nhỏ hơn hoặc kiểm tra dung lượng trống.',true)}finally{btn.disabled=false;btn.textContent='Lưu tài liệu'}}
  async function downloadDoc(id,preview=false){const d=state.docs.find(x=>x.id===id);if(!d)return;const mine=uid()===d.ownerId;if(!mine&&!(d.visibility==='public'&&d.status==='approved')){toast('Bạn không có quyền xem tài liệu này.',true);return}/* EXAMLAB_V20_READER */
   if(preview){return await window.ExamLabDocumentViewer.open(d,()=>store.getFile(id));}
-  const blob=await store.getFile(id);if(!blob){toast('Không tải được file từ Supabase.',true);return}
+  const version=authVersion;const blob=await store.getFile(id);if(version!==authVersion)return;if(!blob){toast('Không tải được file từ Supabase.',true);return}
   const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.rel='noopener';a.download=d.filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),90000);
  }
  async function changeVisibility(id,value){const d=state.docs.find(x=>x.id===id);if(!d||d.ownerId!==uid())throw Error('Chỉ người đăng mới được đổi quyền xem.');await store.update(id,{visibility:value,status:value==='public'?'pending':'private',reviewedAt:null});closeDialog();await reload();toast(value==='public'?'Đã gửi tài liệu chờ Admin duyệt.':'Đã chuyển tài liệu về riêng tư.')}
@@ -62,6 +70,19 @@
  function shareLink(id){const d=state.docs.find(x=>x.id===id);if(!d||d.visibility!=='public'||d.status!=='approved')throw Error('Chỉ chia sẻ liên kết tài liệu công khai đã được duyệt.');const u=new URL('documents.html',location.href);u.searchParams.set('doc',id);return u}
  async function copyLink(id){const u=shareLink(id);try{await navigator.clipboard.writeText(u.href);toast('Đã sao chép liên kết tài liệu.')}catch{showDetails(id);const label=document.createElement('label');label.textContent='Sao chép liên kết này:';const input=document.createElement('input');input.type='text';input.readOnly=true;input.value=u.href;label.append(input);$('#docsDialogContent').append(label);input.focus();input.select()}}
  function shareDoc(id){shareLink(id);const dest=new URL('friends-beta/index.html',location.href);dest.searchParams.set('shareDoc',id);location.assign(dest.href)}
- async function init(){try{await store.connect();state.session=await window.ExamLabAuth.getSession();window.ExamLabAuth.onAuthStateChange(async next=>{state.session=next;try{await reload()}catch(err){toast(err.message,true)}});await reload();const id=new URLSearchParams(location.search).get('doc');if(id){if(!/^[0-9a-f-]{36}$/i.test(id))throw Error('Liên kết tài liệu không hợp lệ.');if(!state.docs.some(x=>x.id===id)){const found=await store.getById(id);state.docs.push(found)}showDetails(id)}}catch(e){console.error(e);toast(e.message||'Không thể kết nối thư viện.',true)}}init();
+ async function openLinkedDocument(version){
+  if(version!==authVersion||linkedVersion===version)return;
+  const id=new URLSearchParams(location.search).get('doc');if(id){
+   if(!/^[0-9a-f-]{36}$/i.test(id))throw Error('Liên kết tài liệu không hợp lệ.');
+   if(!state.docs.some(x=>x.id===id)){const found=await store.getById(id);if(version!==authVersion)return;state.docs.push(found)}
+   if(linkedVersion===version)return;linkedVersion=version;showDetails(id);
+  }
+ }
+ async function refreshSession(next){setSession(next);const version=authVersion;try{if(await reload())await openLinkedDocument(version)}catch(err){if(version===authVersion)toast(err.message,true)}}
+ async function init(){try{
+  await store.connect();
+  window.ExamLabAuth.onAuthStateChange(next=>{++sessionEvent;return refreshSession(next)});
+  const request=sessionEvent,session=await window.ExamLabAuth.getSession();if(request!==sessionEvent)return;await refreshSession(session);
+ }catch(e){console.error(e);toast(e.message||'Không thể kết nối thư viện.',true)}}init();
 })();
 

@@ -188,7 +188,7 @@
   function reset() { ++state.epoch; ++state.bootRequest; ++state.threadRequest; state.user = null; state.peer = null; state.friends = []; state.messages = []; state.summary = []; state.summaryReady=false;$('chatSearch').value='';$('chatOnlyUnread').checked=false;$('chatMessageSearch').value=''; state.more = false; state.history = false; state.drafts.clear(); state.pending.clear(); state.pinned.clear(); $('chatText').value = ''; $('chatPeerName').textContent = 'Chọn một người bạn'; box.hidden = true; renderFriends(); renderMessages(); count(); }
   async function boot() {
     const request = ++state.bootRequest;
-    try { if (!db) return; const r = await db.auth.getUser(); if (r.error) throw r.error; if (request !== state.bootRequest) return; if (!r.data?.user) { reset(); return; } state.user = r.data.user; box.hidden = false; loadPins(); await refresh(true); } catch (e) { if (request === state.bootRequest) status(errorText(e), true); }
+    try { if (!db) return; const session=await db.auth.getSession();if(request !== state.bootRequest)return;if(session.error)throw session.error;const r=session.data?.session?await db.auth.getUser():{data:{user:null}}; if (r.error) throw r.error; if (request !== state.bootRequest) return; if (!r.data?.user) { reset(); return; } state.user = r.data.user; box.hidden = false; loadPins(); await refresh(true); } catch (e) { if (request === state.bootRequest) status(errorText(e), true); }
   }
   db?.auth?.onAuthStateChange((event, session) => { if (event === 'SIGNED_OUT' || (state.user && state.user.id !== session?.user?.id)) reset(); if (event === 'SIGNED_IN' && !state.user) setTimeout(boot, 0); });
   setInterval(() => { if (!document.hidden) refresh(); }, 30000);

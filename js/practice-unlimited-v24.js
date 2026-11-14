@@ -80,8 +80,7 @@
    const correct=qs.filter(q=>isCorrect(q,e.answers[q.id])).length;
    const unanswered=qs.filter(q=>!hasAnswer(e.answers[q.id])).length;
    const attempt={id:e.id,bankId:b.id,bankTitle:b.title,subject:b.subject,mode:e.mode,unlimitedTime:true,questionIds:e.questionIds,answers:JSON.parse(JSON.stringify(e.answers)),startedAt:e.startedAt,completedAt:new Date().toISOString(),timeUsedSec:elapsed(e),correct,wrong:qs.length-correct-unanswered,unanswered,score:grade.score,earnedPoints:Number(grade.earned.toFixed(4)),maxPoints:Number(grade.max.toFixed(4)),questionScores:grade.details,gradingSnapshot:grade.grading,autoSubmitted:false};
-   await storeAttempt(attempt);await del('drafts',examDraftKey());
-   app.draft=null;app.exam=null;app.attempts.push(attempt);app.result=attempt;app.reviewFilter='all';app.page='result';
+   await completeAttempt(attempt);
    closeModal();setHeader();render();window.scrollTo({top:0,left:0,behavior:'instant'});toast('Đã nộp bài thành công!');
   }catch(err){toast('Không lưu được bài: '+err.message,true);app.exam=e;startTimer();}
   finally{app.busy=false;}

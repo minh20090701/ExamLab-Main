@@ -128,7 +128,8 @@
     const request = ++state.boot;
     if (!db?.auth) { reset(); return; }
     try {
-      const r = await db.auth.getUser(); if (request !== state.boot) return; if (r.error) throw r.error;
+      const session = await db.auth.getSession(); if (request !== state.boot) return; if (session.error) throw session.error;
+      const r = session.data?.session ? await db.auth.getUser() : {data:{user:null}}; if (request !== state.boot) return; if (r.error) throw r.error;
       if (!r.data?.user) { reset(); return; }
       state.user = r.data.user; await refresh();
     } catch (e) { if (request === state.boot) status(errorText(e), true); }

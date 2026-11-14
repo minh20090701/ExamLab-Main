@@ -203,7 +203,9 @@
     const request=++model.boot;
     if(!db){message(window.ExamLabSupabaseError||'Không tải được thư viện Supabase. Kiểm tra mạng và đường dẫn ../supabase-config.js.','error');return}
     try{
-      const {data,error}=await db.auth.getUser();if(error)throw error;
+      const session=await db.auth.getSession();if(session.error)throw session.error;
+      if(request!==model.boot)return;
+      const {data,error}=session.data?.session?await db.auth.getUser():{data:{user:null}};if(error)throw error;
       if(request!==model.boot)return;
       const user=data?.user;
       if(!user){$('loginGate').hidden=false;message('Bạn cần đăng nhập tài khoản ExamLab để dùng Beta.');return}

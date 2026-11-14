@@ -79,7 +79,7 @@
     if(syncStatus){syncStatus.textContent=message;syncStatus.dataset.state=state;}
     if(syncButton){syncButton.disabled=syncing||!cloudEnabled;syncButton.setAttribute('aria-busy',syncing?'true':'false');}
   }
-  function savePending(){try{localStorage.setItem(PENDING_KEY,JSON.stringify(pending));}catch(e){console.warn('Không lưu được hàng đợi đồng bộ',e)}}
+  function savePending(){try{localStorage.setItem(PENDING_KEY,JSON.stringify(pending));return true;}catch(e){console.warn('Không lưu được hàng đợi đồng bộ',e);return false;}}
   function hasPending(){return pending.clear||pending.deletes.length>0||Object.keys(pending.upserts).length>0;}
   function planSync(delay=250){if(!cloudEnabled)return;clearTimeout(syncTimer);syncTimer=setTimeout(()=>syncStudyHistory(),delay)}
   function queueSession(item){
@@ -286,7 +286,7 @@
        durationMs:Math.min(durationMs,24*3600000),mode:studyTimer.mode,
        subject:studyTimer.subject.trim().slice(0,75),complete:!!complete};
     studyHistory.unshift(item);studyHistory=studyHistory.slice(0,500);
-    if(!persistStudyHistory()){studyHistory.shift();return false;}
+    if(!persistStudyHistory()){studyHistory.shift();return null;}
     queueSession(item);
     studyTimer.sessionRecorded=true;
     renderStudyHistory();return true;
@@ -331,7 +331,7 @@
   }
   document.querySelectorAll('[data-timer-mode]').forEach(btn=>btn.addEventListener('click',()=>{
     if(studyTimer.mode===btn.dataset.timerMode)return;
-    recordStudySession(false);
+    if(recordStudySession(false)===null)return;
     studyTimer.mode=btn.dataset.timerMode;
     studyTimer.phase='focus';resetStudySession();
     $('timerHelp').textContent=studyTimer.mode==='focus'?'Học tập trung theo phiên, rồi chủ động chuyển sang giờ nghỉ.':'Bấm giờ học tự do, có thể tạm dừng và tiếp tục.';
@@ -348,12 +348,12 @@
     persistTimer();renderStudyTimer();
   });
   $('timerReset').addEventListener('click',()=>{
-    recordStudySession(false);resetStudySession();
+    if(recordStudySession(false)===null)return;resetStudySession();
     $('timerHelp').textContent='Đã đặt lại đồng hồ. Sẵn sàng cho phiên học mới!';
     persistTimer();renderStudyTimer();
   });
   $('timerSwitch').addEventListener('click',()=>{
-    recordStudySession(false);
+    if(recordStudySession(false)===null)return;
     studyTimer.phase=studyTimer.phase==='focus'?'break':'focus';resetStudySession();
     $('timerHelp').textContent=studyTimer.phase==='break'?'☕ Nghỉ ngơi thư giãn một chút nhé.':'📚 Sẵn sàng tập trung học bài.';
     persistTimer();renderStudyTimer();
@@ -361,7 +361,7 @@
   for(const [id,key,choices] of [['timerFocusMinutes','focusMin',TIMER_FOCUS_OPTIONS],['timerBreakMinutes','breakMin',TIMER_BREAK_OPTIONS]]) {
     $(id).addEventListener('change',()=>{
       const value=Number($(id).value);if(!choices.includes(value))return;
-      recordStudySession(false);studyTimer[key]=value;resetStudySession();
+      if(recordStudySession(false)===null){$(id).value=String(studyTimer[key]);return;}studyTimer[key]=value;resetStudySession();
       persistTimer();renderStudyTimer();
     });
   }

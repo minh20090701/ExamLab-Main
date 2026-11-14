@@ -1,0 +1,177 @@
+/* V36: quiet surfaces, readable text, seasonal accents. Keep after V34. */
+html[data-festival][data-festival=halloween]:not([data-theme=dark]) {
+  --season-bg: #f6f4f7;
+  --season-paper: #fffefe;
+  --season-ink: #302834;
+  --season-muted: #665d6c;
+  --season-accent: #914512;
+  --season-on: #ffffff;
+  --season-line: #d8d0dd;
+  --season-soft: #f2eef4;
+  --season-soft2: #e8e1ec;
+  --season-head: #f5f1f6;
+}
+html[data-festival][data-festival=halloween][data-theme=dark] {
+  --season-bg: #1c1921;
+  --season-paper: #27232e;
+  --season-ink: #eee8f3;
+  --season-muted: #c1b6cb;
+  --season-accent: #d8b691;
+  --season-on: #261b12;
+  --season-line: #55495e;
+  --season-soft: #2d2833;
+  --season-soft2: #39313f;
+  --season-head: #211d27;
+}
+html[data-festival][data-festival=christmas]:not([data-theme=dark]) {
+  --season-bg: #f2f6f3;
+  --season-paper: #ffffff;
+  --season-ink: #22382c;
+  --season-muted: #54685b;
+  --season-accent: #256348;
+  --season-on: #ffffff;
+  --season-line: #cddbd1;
+  --season-soft: #edf3ef;
+  --season-soft2: #e3ece5;
+  --season-head: #edf3ef;
+}
+html[data-festival][data-festival=christmas][data-theme=dark] {
+  --season-bg: #17201c;
+  --season-paper: #212c26;
+  --season-ink: #e5eee7;
+  --season-muted: #b4c5b9;
+  --season-accent: #a3c9b0;
+  --season-on: #192b20;
+  --season-line: #4b6152;
+  --season-soft: #29362e;
+  --season-soft2: #34443a;
+  --season-head: #1d2721;
+}
+html[data-festival][data-festival=tet]:not([data-theme=dark]) {
+  --season-bg: #f8f6f2;
+  --season-paper: #fffdf9;
+  --season-ink: #342a28;
+  --season-muted: #6b5b54;
+  --season-accent: #a63737;
+  --season-on: #ffffff;
+  --season-line: #dcd3c9;
+  --season-soft: #f4eee7;
+  --season-soft2: #ece2d8;
+  --season-head: #faf6f0;
+}
+html[data-festival][data-festival=tet][data-theme=dark] {
+  --season-bg: #211b1b;
+  --season-paper: #2d2525;
+  --season-ink: #f2e8df;
+  --season-muted: #cebcb4;
+  --season-accent: #e3b1a8;
+  --season-on: #38201f;
+  --season-line: #64514c;
+  --season-soft: #352b29;
+  --season-soft2: #443531;
+  --season-head: #282121;
+}
+html[data-festival][data-festival=midautumn]:not([data-theme=dark]) {
+  --season-bg: #f7f5f2;
+  --season-paper: #fffdfa;
+  --season-ink: #343040;
+  --season-muted: #675f70;
+  --season-accent: #665193;
+  --season-on: #ffffff;
+  --season-line: #d6d0df;
+  --season-soft: #f0edf5;
+  --season-soft2: #e7e0f0;
+  --season-head: #f6f2ee;
+}
+html[data-festival][data-festival=midautumn][data-theme=dark] {
+  --season-bg: #1e1d27;
+  --season-paper: #292835;
+  --season-ink: #ece8f4;
+  --season-muted: #c1bad2;
+  --season-accent: #c4b5de;
+  --season-on: #292034;
+  --season-line: #57516b;
+  --season-soft: #302e3e;
+  --season-soft2: #3c384c;
+  --season-head: #242330;
+}
+html[data-festival][data-festival=sakura]:not([data-theme=dark]) {
+  --season-bg: #f8f4f6;
+  --season-paper: #fffdfd;
+  --season-ink: #3e2c36;
+  --season-muted: #715c68;
+  --season-accent: #923b64;
+  --season-on: #ffffff;
+  --season-line: #decfd7;
+  --season-soft: #f6eef2;
+  --season-soft2: #efdee7;
+  --season-head: #faf1f5;
+}
+html[data-festival][data-festival=sakura][data-theme=dark] {
+  --season-bg: #221d23;
+  --season-paper: #2e2630;
+  --season-ink: #f3e8ee;
+  --season-muted: #cebbc9;
+  --season-accent: #dab4c9;
+  --season-on: #382532;
+  --season-line: #635061;
+  --season-soft: #362c37;
+  --season-soft2: #443747;
+  --season-head: #29222b;
+}
+html[data-festival][data-festival=night]:not([data-theme=dark]) {
+  --season-bg: #f2f5f9;
+  --season-paper: #ffffff;
+  --season-ink: #263447;
+  --season-muted: #566676;
+  --season-accent: #3b6299;
+  --season-on: #ffffff;
+  --season-line: #cbd6e3;
+  --season-soft: #edf1f7;
+  --season-soft2: #dfe7f2;
+  --season-head: #eef3f8;
+}
+html[data-festival][data-festival=night][data-theme=dark] {
+  --season-bg: #17202a;
+  --season-paper: #212c38;
+  --season-ink: #e8eef5;
+  --season-muted: #b7c5d5;
+  --season-accent: #b2c8e2;
+  --season-on: #203248;
+  --season-line: #4c6178;
+  --season-soft: #293544;
+  --season-soft2: #354457;
+  --season-head: #1c2632;
+}
+
+/* Leave room for the decoration without tinting the entire reading surface. */
+html[data-festival]:not([data-festival=classic]) :is(.hero,.docs-hero,.study-hero,.auth-story,.admin-hero,.result-hero) {
+  background: linear-gradient(120deg,var(--paper),var(--soft)) !important;
+  box-shadow: 0 4px 18px #00000008 !important;
+}
+html[data-festival]:not([data-festival=classic]) .festival-bar {
+  background: var(--paper) !important;
+}
+html[data-festival]:not([data-festival=classic]) .festival-banner {
+  background-color: var(--paper) !important;
+  border-top-color: var(--line) !important;
+}
+html[data-festival]:not([data-festival=classic]) .festival-ribbon {
+  opacity: .65;
+  border-color: var(--line) !important;
+}
+.festival-particles { opacity: .35; }
+
+/* Muted text is still readable; primary actions and selected tabs keep their accent. */
+html[data-festival]:not([data-festival=classic]) :is(.profile-note,.docs-fineprint,.notes-small,.study-local-note,.workspace-meta) {
+  color: var(--muted) !important;
+}
+html[data-festival]:not([data-festival=classic]) :is(input,textarea)::placeholder {
+  color: var(--muted) !important;
+  opacity: 1 !important;
+}
+html[data-festival]:not([data-festival=classic]) :is(input,textarea,select):focus-visible {
+  outline: 2px solid var(--violet) !important;
+  outline-offset: 2px !important;
+}
+

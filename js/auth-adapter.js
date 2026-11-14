@@ -4,6 +4,7 @@
  'use strict';
  const GUEST_KEY='examlab.guest.supabase.v1';
  const listeners=new Set();
+ let subscription=null;
  const client=()=>{if(!window.ExamLabSupabase)throw Error(window.ExamLabSupabaseError||'Chưa có kết nối tài khoản.');return window.ExamLabSupabase};
  const nameOf=user=>String(user.user_metadata?.display_name||user.email?.split('@')[0]||'Sĩ tử').slice(0,32);
  const shape=user=>user?{kind:'supabase-account',id:user.id,name:nameOf(user),email:user.email,createdAt:user.created_at}:null;
@@ -18,11 +19,14 @@
    },
    onAuthStateChange(callback){
      listeners.add(callback);
-     const {data}=client().auth.onAuthStateChange((_event,session)=>{
-       // Tránh gọi API Supabase ngay trong callback xác thực.
-       setTimeout(()=>notify(shape(session?.user)||guest()),0);
-     });
-     return ()=>{listeners.delete(callback);data.subscription.unsubscribe()};
+     if(!subscription){
+       const {data}=client().auth.onAuthStateChange((_event,session)=>{
+         // One Supabase subscription fans out once, outside the auth lock.
+         setTimeout(()=>notify(shape(session?.user)||guest()),0);
+       });
+       subscription=data.subscription;
+     }
+     return ()=>{listeners.delete(callback);if(!listeners.size&&subscription){subscription.unsubscribe();subscription=null}};
    },
    async signUp(email,password,options={}){
      emailOk(email);passwordOk(password);const name=String(options.name||'').trim();
