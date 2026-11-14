@@ -1,0 +1,162 @@
+/* V37 notification tokens: subtle themed surfaces with distinct status colors. */
+html[data-festival=halloween]:not([data-theme=dark]) {
+  --notice-surface: #f2eef4;
+  --notice-ink: #302834;
+  --notice-line: #914512;
+  --notice-good: #345739;
+  --notice-good-bg: #eff1ee;
+  --notice-bad: #95363a;
+  --notice-bad-bg: #f7eeee;
+  --notice-warn: #7d4e14;
+  --notice-warn-bg: #f5f0eb;
+}
+html[data-festival=halloween][data-theme=dark] {
+  --notice-surface: #2d2833;
+  --notice-ink: #eee8f3;
+  --notice-line: #d8b691;
+  --notice-good: #bad9bc;
+  --notice-good-bg: #39393f;
+  --notice-bad: #edbcbd;
+  --notice-bad-bg: #3f353f;
+  --notice-warn: #e2ce9f;
+  --notice-warn-bg: #3d383c;
+}
+html[data-festival=christmas]:not([data-theme=dark]) {
+  --notice-surface: #edf3ef;
+  --notice-ink: #22382c;
+  --notice-line: #256348;
+  --notice-good: #245b41;
+  --notice-good-bg: #edf2f0;
+  --notice-bad: #853a42;
+  --notice-bad-bg: #f5eff0;
+  --notice-warn: #6c531c;
+  --notice-warn-bg: #f3f1ed;
+}
+html[data-festival=christmas][data-theme=dark] {
+  --notice-surface: #29362e;
+  --notice-ink: #e5eee7;
+  --notice-line: #a3c9b0;
+  --notice-good: #b2dcc1;
+  --notice-good-bg: #324139;
+  --notice-bad: #e5bfc2;
+  --notice-bad-bg: #393e39;
+  --notice-warn: #dad1a4;
+  --notice-warn-bg: #374035;
+}
+html[data-festival=tet]:not([data-theme=dark]) {
+  --notice-surface: #f4eee7;
+  --notice-ink: #342a28;
+  --notice-line: #a63737;
+  --notice-good: #38553f;
+  --notice-good-bg: #eff0ea;
+  --notice-bad: #983440;
+  --notice-bad-bg: #f7edea;
+  --notice-warn: #804c19;
+  --notice-warn-bg: #f5efe7;
+}
+html[data-festival=tet][data-theme=dark] {
+  --notice-surface: #352b29;
+  --notice-ink: #f2e8df;
+  --notice-line: #e3b1a8;
+  --notice-good: #bcd8c0;
+  --notice-good-bg: #3e3a38;
+  --notice-bad: #efbbc1;
+  --notice-bad-bg: #443738;
+  --notice-warn: #e4cda3;
+  --notice-warn-bg: #433934;
+}
+html[data-festival=midautumn]:not([data-theme=dark]) {
+  --notice-surface: #f0edf5;
+  --notice-ink: #343040;
+  --notice-line: #665193;
+  --notice-good: #2e594c;
+  --notice-good-bg: #eef0ec;
+  --notice-bad: #8f384d;
+  --notice-bad-bg: #f6edec;
+  --notice-warn: #765027;
+  --notice-warn-bg: #f4efe9;
+}
+html[data-festival=midautumn][data-theme=dark] {
+  --notice-surface: #302e3e;
+  --notice-ink: #ece8f4;
+  --notice-line: #c4b5de;
+  --notice-good: #b7d9c8;
+  --notice-good-bg: #3a3d47;
+  --notice-bad: #eabcc9;
+  --notice-bad-bg: #403a47;
+  --notice-warn: #dfceab;
+  --notice-warn-bg: #3f3c43;
+}
+html[data-festival=sakura]:not([data-theme=dark]) {
+  --notice-surface: #f6eef2;
+  --notice-ink: #3e2c36;
+  --notice-line: #923b64;
+  --notice-good: #345545;
+  --notice-good-bg: #eff0ee;
+  --notice-bad: #953446;
+  --notice-bad-bg: #f7edee;
+  --notice-warn: #7d4d20;
+  --notice-warn-bg: #f5efeb;
+}
+html[data-festival=sakura][data-theme=dark] {
+  --notice-surface: #362c37;
+  --notice-ink: #f3e8ee;
+  --notice-line: #dab4c9;
+  --notice-good: #bbd9c5;
+  --notice-good-bg: #3f3b42;
+  --notice-bad: #eebcc6;
+  --notice-bad-bg: #453842;
+  --notice-warn: #e2cea8;
+  --notice-warn-bg: #443a3e;
+}
+html[data-festival=night]:not([data-theme=dark]) {
+  --notice-surface: #edf1f7;
+  --notice-ink: #263447;
+  --notice-line: #3b6299;
+  --notice-good: #275b4d;
+  --notice-good-bg: #eef2f1;
+  --notice-bad: #883a4e;
+  --notice-bad-bg: #f5eff1;
+  --notice-warn: #705328;
+  --notice-warn-bg: #f4f1ee;
+}
+html[data-festival=night][data-theme=dark] {
+  --notice-surface: #293544;
+  --notice-ink: #e8eef5;
+  --notice-line: #b2c8e2;
+  --notice-good: #b5dcc8;
+  --notice-good-bg: #334149;
+  --notice-bad: #e8bfc9;
+  --notice-bad-bg: #393e49;
+  --notice-warn: #dcd0ac;
+  --notice-warn-bg: #374046;
+}
+html[data-festival]:not([data-festival=classic]),html[data-festival]:not([data-festival=classic]) body{
+ --good:var(--notice-good)!important;--goodbg:var(--notice-good-bg)!important;
+ --bad:var(--notice-bad)!important;--danger:var(--notice-bad)!important;--badbg:var(--notice-bad-bg)!important;
+ --warn:var(--notice-warn)!important;--warnbg:var(--notice-warn-bg)!important;
+}
+html[data-festival]:not([data-festival=classic]) :is(.site-announcement,.announcement-label){background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important}
+html[data-festival]:not([data-festival=classic]) .announcement-label{color:var(--violet)!important}
+html[data-festival]:not([data-festival=classic]) :is(.notice,.notice-banner,.docs-notice,.auth-alert,.admin-warning,.v2-inline-note){background:var(--notice-surface)!important;color:var(--notice-ink)!important;border:1px solid var(--line)!important;border-left:3px solid var(--notice-line)!important;box-shadow:none!important}
+html[data-festival]:not([data-festival=classic]) #toastRoot .toast,
+html[data-festival]:not([data-festival=classic]) :is(#adminToast,.docs-toast,.study-toast){background:var(--paper)!important;color:var(--ink)!important;border:1px solid var(--line)!important;border-left:4px solid var(--violet)!important;box-shadow:0 8px 30px #00000020!important;overflow-wrap:anywhere}
+html[data-festival]:not([data-festival=classic]) :is(.profile-message,.notice.is-ok,.auth-alert[data-error=false]){background:var(--goodbg)!important;color:var(--good)!important;border-color:var(--good)!important}
+html[data-festival]:not([data-festival=classic]) #toastRoot .toast.err,
+html[data-festival]:not([data-festival=classic]) :is(#adminToast.error,.docs-toast.is-error,.study-toast.is-error,.notice.is-error,.profile-message.error,.auth-alert[data-error=true],.v2-inline-note.is-error){background:var(--badbg)!important;color:var(--bad)!important;border-color:var(--bad)!important}
+html[data-festival]:not([data-festival=classic]) :is(.docs-reject,.admin-warning,.notice.is-warning,.auth-alert[data-state=warning]){background:var(--warnbg)!important;color:var(--warn)!important;border-color:var(--warn)!important}
+html[data-festival]:not([data-festival=classic]) :is(.workspace-status.error,.chat-status.error,#festivalAdminStatus.error,#studySyncStatus[data-state=error],.exm-error){color:var(--bad)!important}
+html[data-festival]:not([data-festival=classic]) :is(#studySyncStatus[data-state=success],.docs-status.approved){color:var(--good)!important}
+html[data-festival]:not([data-festival=classic]) .docs-status.approved{background:var(--goodbg)!important}
+html[data-festival]:not([data-festival=classic]) .docs-status.pending{color:var(--warn)!important;background:var(--warnbg)!important}
+html[data-festival]:not([data-festival=classic]) .docs-status.rejected{color:var(--bad)!important;background:var(--badbg)!important}
+html[data-festival]:not([data-festival=classic]) :is(.alert-count,.heading-count,.chat-unread){color:var(--season-on)!important;background:var(--violet)!important;border-color:var(--violet)!important}
+html[data-festival]:not([data-festival=classic]) #examlab-dialog-host .exm-card,
+html[data-festival]:not([data-festival=classic]) :is(.submit-exam-dialog,.modal,.docs-dialog){background:var(--paper)!important;color:var(--ink)!important;border-color:var(--line)!important}
+html[data-festival]:not([data-festival=classic]) #examlab-dialog-host :is(.exm-symbol,.exm-code,.exm-cancel){background:var(--soft)!important;color:var(--ink)!important;border-color:var(--line)!important;box-shadow:none!important}
+html[data-festival]:not([data-festival=classic]) #examlab-dialog-host :is(.exm-message,.exm-title,.exm-kicker){color:var(--ink)!important}
+html[data-festival]:not([data-festival=classic]) #examlab-dialog-host .exm-ok{background:var(--violet)!important;color:var(--season-on)!important;border-color:var(--violet)!important}
+html[data-festival]:not([data-festival=classic]) #examlab-dialog-host .exm-ok.exm-danger{background:var(--badbg)!important;color:var(--bad)!important;border-color:var(--bad)!important}
+html[data-festival]:not([data-festival=classic]) #examlab-dialog-host .exm-btn:focus-visible{outline-color:var(--focus)!important}
+html[data-festival]:not([data-festival=classic]) #examlab-dialog-host .exm-code:focus{border-color:var(--focus)!important;outline:2px solid var(--focus)!important;outline-offset:2px}
+

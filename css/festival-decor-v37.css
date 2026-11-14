@@ -1,0 +1,41 @@
+/* Seasonal details live in the margins and artwork, not over reading controls. */
+.festival-v37 .festival-banner{display:grid!important;grid-template-columns:minmax(0,1fr) 264px;gap:16px;padding:24px 32px 54px;min-height:244px;background-image:none!important;overflow:hidden}
+.festival-v37 .festival-copy{max-width:100%;align-self:center;min-width:0}
+.festival-v37 .festival-copy h2{font-size:clamp(26px,3vw,36px);line-height:1.22;margin:13px 0 12px}
+.festival-v37 .festival-copy small{display:inline-block;border:1px solid var(--line);border-radius:99px;padding:5px 10px;background:var(--soft);color:var(--muted);font-size:9px;letter-spacing:1.2px}
+.festival-v37 .festival-copy p{max-width:580px}
+.festival-stage{position:relative;isolation:isolate;width:264px;height:190px;justify-self:end;pointer-events:none;user-select:none;contain:layout style}
+.festival-stage[hidden],.festival-stage [hidden]{display:none!important}
+.fd-scene{position:absolute;inset:0;width:100%;height:100%;overflow:visible;color:var(--violet);z-index:1}
+.fd-halo{position:absolute;inset:24px 44px 24px;border:1px solid var(--line);border-radius:50%;background:var(--soft);box-shadow:0 0 0 12px var(--paper),0 0 0 13px var(--line);opacity:.8}
+.fd-gif,.fd-fallback{position:absolute;z-index:2;width:124px;height:124px;object-fit:contain;left:70px;top:32px;filter:drop-shadow(0 5px 6px #0000000c)}
+.fd-fallback{display:grid;place-items:center;font:92px/1 system-ui}
+.fd-caption{position:absolute;inset:auto 0 0;text-align:center;font:700 8px/1.4 system-ui;letter-spacing:1.65px;color:var(--muted);white-space:nowrap}
+.fd-scene-line{fill:none;stroke:currentColor;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.fd-branch{fill:none;stroke:currentColor;stroke-width:2.5;stroke-linecap:round;opacity:.65}
+.fd-flower,.fd-petal{fill:#db8faa}.fd-flower-heart{fill:#d9b26c}.fd-moon{fill:#e1be74;opacity:.6}.fd-moon-crater{fill:var(--paper);opacity:.3}
+.fd-lantern-body{fill:#b84a43}.fd-lantern-rib{stroke:#e9c783}.fd-pine{fill:#648a73;opacity:.7}.fd-bulb{fill:#d5b36b}
+.festival-stage[data-scene=tet] .fd-halo{inset:22px 19px 30px 105px;box-shadow:none;opacity:.6}
+.festival-stage[data-scene=tet] :is(.fd-gif,.fd-fallback){left:135px;top:49px;width:90px;height:90px;font-size:70px}
+.festival-stage[data-scene=midautumn] .fd-halo{opacity:.15}.festival-stage[data-scene=midautumn] :is(.fd-gif,.fd-fallback){top:57px;width:112px;height:112px;left:76px}
+.festival-v37 .festival-ribbon{right:32px;left:32px;bottom:13px;gap:0;justify-content:space-between;opacity:.7;border-top-style:solid;padding:10px 4px 0}
+.festival-v37 .festival-ribbon span{font-size:15px;animation-duration:9s}
+.festival-art-credit{flex-basis:100%;margin:8px 0 0;font:10px/1.6 system-ui;color:var(--muted)}
+.festival-art-credit a{color:inherit;text-underline-offset:3px}
+html[data-festival]:not([data-festival=classic]) :is(.profile-panel,.timer-panel,.study-notes,.hub-sidebar,.auth-card){border-top:2px solid var(--line);box-shadow:0 4px 20px #00000007}
+html[data-festival]:not([data-festival=classic]) :is(.profile-panel,.timer-panel,.study-notes)>h2::after{content:var(--festival-mark,'✦');display:inline-block;font:16px/1 Georgia,serif;color:var(--violet);opacity:.55;margin-left:12px;vertical-align:middle}
+html[data-festival]:not([data-festival=classic]) :is(.hero-art,.docs-hero-art,.study-hero-mark){border-radius:50%;outline:1px solid var(--line);outline-offset:10px}
+html[data-festival]:not([data-festival=classic]) :is(.hero-pills,.hero-tags,.docs-hero-tags)>span{border-radius:99px!important}
+html[data-festival]:not([data-festival=classic]) :is(.footer,.docs-footer,.auth-footer){border-top-color:var(--line);background:linear-gradient(180deg,transparent,var(--soft));color:var(--muted)}
+html[data-festival]:not([data-festival=classic]) .foot-decor{font-size:0;color:var(--violet);opacity:.65}
+html[data-festival]:not([data-festival=classic]) .foot-decor::after{content:'· · ·  ' var(--festival-mark,'✦') '  · · ·';font:18px/2 Georgia,serif;letter-spacing:6px}
+html[data-festival-effects=true] .fd-bulb{animation:fd-soft-light 5s ease-in-out infinite;animation-delay:calc(var(--n)*-.7s)}
+html[data-festival-effects=true] .fd-meteor{animation:fd-soft-light 8s ease-in-out infinite}
+@keyframes fd-soft-light{0%,100%{opacity:.4}50%{opacity:1}}
+html[data-festival-effects=false] .festival-stage *,html[data-festival-focus=true] .festival-stage *{animation:none!important}
+html[data-festival-focus=true] .festival-stage{display:none!important}
+@media(prefers-reduced-motion:reduce){.festival-stage *{animation:none!important}.fd-gif{display:none!important}}
+@media(max-width:900px){.festival-v37 .festival-banner{grid-template-columns:minmax(0,1fr) 220px;padding:22px 24px 52px;min-height:224px}.festival-stage{width:220px;height:170px}.fd-halo{inset:23px 36px}.fd-gif,.fd-fallback{left:55px;width:110px;height:110px;font-size:82px}.festival-stage[data-scene=tet] :is(.fd-gif,.fd-fallback){left:115px;width:80px;height:80px}.festival-stage[data-scene=midautumn] :is(.fd-gif,.fd-fallback){left:57px;width:105px;height:105px}.fd-caption{font-size:7px;letter-spacing:1px}}
+@media(max-width:600px){.festival-v37 .festival-banner{grid-template-columns:minmax(0,1fr) 104px;gap:8px;padding:20px 16px 48px;min-height:184px}.festival-v37 .festival-copy h2{font-size:25px}.festival-v37 .festival-copy p{font-size:12px;line-height:1.6}.festival-v37 .festival-copy small{font-size:7px;letter-spacing:.7px;padding:4px 7px}.festival-stage{width:104px;height:120px;align-self:center}.fd-scene{height:100%;top:-7px;opacity:.65}.fd-halo{inset:23px 5px 18px;box-shadow:none}.fd-gif,.fd-fallback,.festival-stage[data-scene=tet] :is(.fd-gif,.fd-fallback),.festival-stage[data-scene=midautumn] :is(.fd-gif,.fd-fallback){left:10px;top:27px;width:84px;height:84px;font-size:64px}.fd-caption{display:none}.festival-v37 .festival-ribbon{left:17px;right:17px;bottom:12px}.festival-v37 .festival-ribbon span{font-size:13px}.festival-stage[data-scene=tet] .fd-halo{inset:23px 5px 18px}.festival-v37 .festival-copy{max-width:none}}
+@media(max-width:359px){.festival-v37 .festival-banner{grid-template-columns:minmax(0,1fr) 72px}.festival-stage{width:72px}.fd-gif,.fd-fallback,.festival-stage[data-scene=tet] :is(.fd-gif,.fd-fallback),.festival-stage[data-scene=midautumn] :is(.fd-gif,.fd-fallback){width:64px;height:64px;left:4px;top:36px;font-size:52px}.festival-v37 .festival-copy h2{font-size:23px}}
+@media(max-width:600px){.festival-v37 .festival-audio-details summary{padding-right:100px;line-height:36px;white-space:nowrap;font-size:11px}}
