@@ -1,0 +1,120 @@
+/* One account control for every header. Loaded after the legacy page styles. */
+.topbar .topbar-inner > .top-actions {
+  align-items: center !important;
+  flex-wrap: nowrap !important;
+  gap: 8px !important;
+}
+
+.topbar .top-actions > #accountLink.profile-top-link {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  align-self: center !important;
+  flex: 0 0 auto !important;
+  box-sizing: border-box !important;
+  width: 144px !important;
+  min-width: 0 !important;
+  max-width: 144px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  padding: 5px 10px !important;
+  gap: 8px !important;
+  border-radius: 10px !important;
+  font-family: system-ui, -apple-system, "Segoe UI", Arial, sans-serif !important;
+  font-size: 12px !important;
+  line-height: 1 !important;
+  text-align: left !important;
+  text-transform: none !important;
+  text-decoration: none !important;
+  letter-spacing: normal !important;
+}
+
+#accountLink.profile-top-link .account-mark {
+  display: grid !important;
+  place-items: center !important;
+  box-sizing: border-box !important;
+  flex: 0 0 28px !important;
+  width: 28px !important;
+  height: 28px !important;
+  min-width: 28px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 1px solid currentColor !important;
+  border-radius: 50% !important;
+  color: inherit !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  text-align: center !important;
+  overflow: hidden !important;
+}
+
+#accountLink.profile-top-link .account-link-label {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  justify-content: center !important;
+  flex: 1 1 0% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+  text-align: left !important;
+}
+
+#accountLink.profile-top-link .account-pre,
+#accountLink.profile-top-link .account-word {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  color: inherit !important;
+  font-family: inherit !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  letter-spacing: normal !important;
+}
+
+#accountLink.profile-top-link .account-pre {
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  line-height: 12px !important;
+}
+
+#accountLink.profile-top-link .account-word {
+  font-size: 12px !important;
+  font-weight: 750 !important;
+  line-height: 16px !important;
+}
+
+.topbar #accountLink.profile-top-link:focus-visible {
+  outline: 2px solid currentColor !important;
+  outline-offset: 3px !important;
+}
+
+/* Keep the same 44px touch target beside the other controls on narrow screens.
+   The link's aria-label and title still contain the full account name. */
+@media (max-width: 600px) {
+  .topbar .top-actions > #accountLink.profile-top-link {
+    width: 44px !important;
+    max-width: 44px !important;
+    justify-content: center !important;
+    padding: 5px !important;
+    gap: 0 !important;
+  }
+  #accountLink.profile-top-link .account-link-label {
+    display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .topbar .topbar-inner > .top-actions {
+    gap: 5px !important;
+  }
+}
