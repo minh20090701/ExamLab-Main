@@ -8,7 +8,7 @@
  const flower=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})" class="fc-flower">${[0,72,144,216,288].map(a=>`<ellipse cy="-5" rx="3.6" ry="5.4" transform="rotate(${a})"/>`).join('')}<circle r="2.6" class="fc-gold"/></g>`;
  const star=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><path class="fc-star fc-glow" d="M0-8 2-2 8 0 2 2 0 8-2 2-8 0-2-2Z"/></g>`;
  const pine=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><path class="fc-wood" d="M-3 15h6v15h-6Z"/><path class="fc-green" d="m0-48-17 25h9l-18 25h12l-21 27h70L14 2h12L8-23h9Z"/><path d="m-12-24 12 4 12-4M-21 3 21 8M-25 22 25 18" class="fc-thread"/><circle class="fc-red fc-glow" cx="-14" cy="10" r="3"/><circle class="fc-gold fc-glow" cx="9" cy="-11" r="3"/>${star(0,-55,.65)}</g>`;
- const lantern=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><g class="fc-sway"><path d="M0-37V-20" class="fc-thread"/><ellipse rx="16" ry="21" class="fc-red"/><ellipse rx="8" ry="21" class="fc-thread"/><path d="M-10-20H10M-10 20H10M0 21V37M-4 30V40M4 30V40" class="fc-thread" stroke-width="2.5"/><path d="m0-8 6 8-6 8-6-8Z" class="fc-gold" opacity=".8"/></g></g>`;
+ const lantern=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><g class="fc-sway"><path d="M0-37V-20" class="fc-thread"/><ellipse rx="16" ry="21" class="fc-red"/><ellipse rx="8" ry="21" class="fc-thread"/><path d="M-10-20H10M-10 20H10M0 21V37M-4 30V41M4 30V41" class="fc-thread" stroke-width="2.5"/><path d="m0-8 6 8-6 8-6-8Z" class="fc-gold" opacity=".8"/></g></g>`;
  const bat=(x,y,s=1)=>`<g transform="translate(${x} ${y}) scale(${s})"><path class="fc-bat fc-bob" d="M-21-7Q-12-5-8-12L-4-4 0-7 4-4 8-12Q12-5 21-7Q20 3 13 7Q6 1 0 11Q-6 1-13 7Q-20 3-21-7Z"/></g>`;
  const books='<g class="fc-books"><path d="M18 143q25-14 52 1v24q-27-15-52-2Z"/><path d="M70 144q27-15 52-1v23q-25-13-52 2Z"/><path d="M70 144v24M26 150q20-8 35-1M27 158q19-6 34 0M80 150q18-8 34-1M80 158q18-6 34 0" class="fc-page-line"/><path d="M15 169q28-9 55 3 27-12 55-3" class="fc-book-edge"/></g>';
  const branch='<path d="M174 13q-43 28-89 17Q52 22 12 51M109 29l-9-20M49 32l-5 25" class="fc-branch"/>';
@@ -40,13 +40,24 @@
   return [...document.querySelectorAll('[role=dialog][aria-modal=true],.modal-mask,#excalcPanel,.el20-reader,.toast,#adminToast.show,.study-toast.show')].some(el=>!el.closest('[hidden],.hidden,[aria-hidden=true]')&&getComputedStyle(el).display!=='none');
  }
  function allowed(){return !!themes[current]&&!hidden&&root.dataset.festivalEffects==='true'&&root.dataset.festivalFocus!=='true'&&!document.hidden&&!obstructed()}
+ // V41: let the reading-room hero keep its own clear space on short screens.
+ // Visibility (not display) preserves each corner's geometry while it is covered.
+ function protectReadingRoom(){
+  const hero=document.querySelector('.home-hero-v41'),area=hero?.getBoundingClientRect();
+  for(const corner of [left,right]){
+   const box=corner.getBoundingClientRect();
+   const overlap=!!area&&box.width>0&&box.height>0&&area.width>0&&area.height>0&&box.left<area.right&&box.right>area.left&&box.top<area.bottom&&box.bottom>area.top;
+   const value=String(overlap);if(corner.dataset.overlap!==value)corner.dataset.overlap=value;
+  }
+ }
  function sync(){
   const show=allowed();if(host.hidden===show)host.hidden=!show;
   if(!show){stop();return}
+  protectReadingRoom();if(right.dataset.overlap==='true'){stop();return}
   const theme=themes[current];if(failed.has(theme[0])){stop();return}
   const url=new URL(theme[0]+'.gif',base).href;if(source===url)return;
   const ticket=++generation;source=url;img.hidden=true;fallback.hidden=false;
-  img.onload=()=>{if(ticket!==generation||source!==url||!allowed())return;img.hidden=false;fallback.hidden=true;host.dataset.animated='true'};
+  img.onload=()=>{if(ticket!==generation||source!==url||right.dataset.overlap==='true'||!allowed())return;img.hidden=false;fallback.hidden=true;host.dataset.animated='true'};
   img.onerror=()=>{if(ticket!==generation)return;failed.add(theme[0]);stop()};img.src=url;
  }
  function render(){
@@ -58,6 +69,11 @@
  window.addEventListener('storage',e=>{if(e.key===key||e.key===null){try{hidden=localStorage.getItem(key)==='1'}catch{}checkbox.checked=hidden;sync()}});
  document.addEventListener('examlab:festival-change',render);document.addEventListener('visibilitychange',sync);
  document.addEventListener('focusin',sync);document.addEventListener('focusout',()=>queueMicrotask(sync));
+ let layoutFrame=0;
+ function onLayout(){if(layoutFrame)return;layoutFrame=requestAnimationFrame(()=>{layoutFrame=0;sync()})}
+ window.addEventListener('resize',onLayout);
+ window.addEventListener('scroll',onLayout,{passive:true});
+ document.fonts?.ready.then(onLayout);
  new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-festival','data-festival-effects','data-festival-focus']});
  // Ignore our own image/scene updates, avoiding observer loops during GIF load and fallback.
  new MutationObserver(records=>{if(records.some(record=>!host.contains(record.target)))sync()}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['hidden','class','aria-hidden','aria-modal']});
