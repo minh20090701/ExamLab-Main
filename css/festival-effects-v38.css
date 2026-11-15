@@ -1,0 +1,27 @@
+/* Hidden before JavaScript runs as well, so opening a page never flashes the large banner. */
+html:not([data-festival-panel=open]) #festivalBar{display:none!important}
+.festival-dock{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));left:max(14px,env(safe-area-inset-left));z-index:70;display:flex;gap:5px;align-items:center;max-width:calc(100vw - 28px);padding:4px;border:1px solid var(--line);border-radius:14px;background:var(--paper);color:var(--ink);box-shadow:0 3px 14px #00000012}
+.festival-dock[hidden],.festival-dock [hidden]{display:none!important}
+.festival-dock button{display:inline-flex;align-items:center;justify-content:center;border:0;border-radius:10px;min-height:36px;min-width:36px;padding:7px 11px;font:650 11px/1.4 system-ui;cursor:pointer;background:var(--paper);color:var(--muted);box-shadow:none}
+.festival-dock button:hover,.festival-dock button[aria-expanded=true]{background:var(--soft);color:var(--ink)}
+.festival-dock button:focus-visible{outline:2px solid var(--violet);outline-offset:1px}
+.festival-dock .festival-quick-music{padding:5px;font-size:15px;border-left:1px solid var(--line);border-radius:0 9px 9px 0;color:var(--violet)}
+.festival-dock .festival-quick-music[aria-pressed=true]{background:var(--soft)}
+html[data-festival-focus=true] #festivalDock{display:none!important}
+#festivalParticles.festival-fall-v38{opacity:1;z-index:1;--snow-ink:#739cad;--petal-ink:#cf739d;--cracker-ink:#b44640}
+html[data-theme=dark] #festivalParticles.festival-fall-v38{--snow-ink:#e3eff0;--petal-ink:#ebacc9;--cracker-ink:#e78370}
+#festivalParticles.festival-fall-v38 .festival-fall{position:absolute;top:-45px;left:var(--fall-x);right:auto;width:var(--fall-size);height:calc(var(--fall-size)*1.5);font-size:inherit;color:inherit;opacity:0;animation:festival-fall-drop var(--fall-time) linear infinite;animation-delay:var(--fall-delay)}
+.festival-fall .festival-piece{display:block;width:100%;height:100%;font-style:normal;transform-origin:50% 25%;animation:festival-fall-sway var(--fall-sway) ease-in-out infinite alternate;animation-delay:var(--fall-delay)}
+.festival-piece svg{display:block;width:100%;height:100%;overflow:visible}
+[data-fall-kind=snow] .festival-piece{color:var(--snow-ink)}
+[data-fall-kind=petal] .festival-piece{color:var(--petal-ink)}
+[data-fall-kind=firecracker] .festival-piece{color:var(--cracker-ink)}
+.festival-snow-dot{display:block;aspect-ratio:1;width:100%;border-radius:50%;background:currentColor;box-shadow:0 0 2px currentColor}
+@keyframes festival-fall-drop{0%{transform:translate3d(0,-35px,0) rotate(0);opacity:0}6%,88%{opacity:var(--fall-opacity)}100%{transform:translate3d(var(--fall-drift),calc(100vh + 90px),0) rotate(var(--fall-turn));opacity:0}}
+@keyframes festival-fall-sway{from{transform:translateX(-5px) rotate(-14deg)}to{transform:translateX(5px) rotate(19deg)}}
+html[data-festival-effects=false] #festivalParticles.festival-fall-v38,html[data-festival-focus=true] #festivalParticles.festival-fall-v38,html[data-festival-page-hidden=true] #festivalParticles.festival-fall-v38{display:none!important}
+html[data-festival-effects=false] .festival-fall,html[data-festival-effects=false] .festival-piece,html[data-festival-focus=true] .festival-fall,html[data-festival-focus=true] .festival-piece,html[data-festival-page-hidden=true] .festival-fall,html[data-festival-page-hidden=true] .festival-piece{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){#festivalParticles.festival-fall-v38{display:none!important}.festival-fall,.festival-piece{animation:none!important}}
+@media(max-width:600px){.festival-dock{bottom:max(10px,env(safe-area-inset-bottom));left:max(10px,env(safe-area-inset-left));padding:2px;gap:2px;border-radius:12px}.festival-dock button{min-height:36px;padding:6px 9px;font-size:10px}.festival-dock .festival-quick-music{font-size:15px;padding:5px}}
+/* A scrollbar can leave less than 320px for the page inside a small viewport. */
+@media(max-width:360px){html body{min-width:0}}

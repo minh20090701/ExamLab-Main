@@ -42,7 +42,7 @@
  (bar.querySelector('.festival-player')||bar).append(credit);
  let current='',generation=0,imageKey='',failed=new Set();
  const inView=typeof IntersectionObserver==='undefined'?null:{visible:true};
- function enabled(){return !!themes[current]&&root.dataset.festivalEffects==='true'&&root.dataset.festivalFocus!=='true'&&!document.hidden&&(!inView||inView.visible)}
+ function enabled(){return !!themes[current]&&root.dataset.festivalPanel!=='closed'&&root.dataset.festivalEffects==='true'&&root.dataset.festivalFocus!=='true'&&!document.hidden&&(!inView||inView.visible)}
  function stop(){if(picture.hasAttribute('src')){++generation;picture.removeAttribute('src');}picture.hidden=true;fallback.hidden=false;imageKey='';stage.dataset.animated='false'}
  function motion(){
   const theme=themes[current];if(!theme||!enabled()||failed.has(theme.asset)){stop();return}
@@ -59,7 +59,7 @@
   credit.hidden=false;root.style.setProperty('--festival-mark',JSON.stringify(theme.mark));
   backdrop.innerHTML=scenes[current]();fallback.textContent=theme.fallback;caption.textContent=theme.caption;stage.dataset.scene=current;motion();
  }
- new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-festival','data-festival-effects','data-festival-focus']});
+ new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-festival','data-festival-effects','data-festival-focus','data-festival-panel']});
  document.addEventListener('examlab:festival-change',render);
  document.addEventListener('visibilitychange',motion);
  if(inView)new IntersectionObserver(entries=>{inView.visible=entries.some(entry=>entry.isIntersecting);motion()},{rootMargin:'100px'}).observe(stage);

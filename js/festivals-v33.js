@@ -15,7 +15,7 @@
  }
  button.onclick=async()=>{cancel();const playing=button.getAttribute('aria-pressed')==='true'||button.textContent.includes('Đang mở');remember(playing);await originalPlay()};
  function schedule(){cancel();if(eligible())timer=setTimeout(()=>{timer=null;attempt()},Math.max(0,5000-(performance.now()-started)))}
- const resume=e=>{if(e.isTrusted&&waiting&&eligible()&&!e.target.closest?.('#festivalPlay'))attempt()};
+ const resume=e=>{if(e.isTrusted&&waiting&&eligible()&&!e.target.closest?.('#festivalPlay,#festivalQuickMusic'))attempt()};
  document.addEventListener('pointerdown',resume);document.addEventListener('keydown',e=>{if(!e.ctrlKey&&!e.metaKey&&!e.altKey)resume(e)});
  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&performance.now()-started>=5000&&!stopped&&button.getAttribute('aria-pressed')!=='true')schedule()});
  new MutationObserver(()=>{if(root.dataset.festivalFocus==='true'){cancel();remember(true)}}).observe(root,{attributes:true,attributeFilter:['data-festival-focus']});
