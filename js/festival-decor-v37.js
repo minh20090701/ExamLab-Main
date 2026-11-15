@@ -36,10 +36,7 @@
  const picture=document.createElement('img');picture.className='fd-gif';picture.alt='';picture.width=512;picture.height=512;picture.decoding='async';picture.draggable=false;picture.hidden=true;
  const caption=document.createElement('span');caption.className='fd-caption';
  stage.append(halo,backdrop,fallback,picture,caption);banner.append(stage);
- // Attribution lives next to the existing optional effect controls.
- const credit=document.createElement('p');credit.className='festival-art-credit';
- const creditLink=document.createElement('a');creditLink.href=new URL('../../../docs/NGUON_ANH_DONG_V37.html',base).href;creditLink.textContent='Ảnh động: Google Noto · CC BY 4.0';creditLink.target='_blank';creditLink.rel='noopener';credit.append(creditLink);
- (bar.querySelector('.festival-player')||bar).append(credit);
+ // Asset attribution is retained in docs/NGUON_ANH_DONG_V37.html and the patch documentation.
  let current='',generation=0,imageKey='',failed=new Set();
  const inView=typeof IntersectionObserver==='undefined'?null:{visible:true};
  function enabled(){return !!themes[current]&&root.dataset.festivalPanel!=='closed'&&root.dataset.festivalEffects==='true'&&root.dataset.festivalFocus!=='true'&&!document.hidden&&(!inView||inView.visible)}
@@ -55,8 +52,8 @@
  function render(){
   const next=root.dataset.festival||'classic';if(next===current){motion();return}
   stop();current=next;const theme=themes[current];stage.hidden=!theme;bar.classList.toggle('festival-v37',!!theme);
-  if(!theme){credit.hidden=true;root.style.removeProperty('--festival-mark');return}
-  credit.hidden=false;root.style.setProperty('--festival-mark',JSON.stringify(theme.mark));
+  if(!theme){root.style.removeProperty('--festival-mark');return}
+  root.style.setProperty('--festival-mark',JSON.stringify(theme.mark));
   backdrop.innerHTML=scenes[current]();fallback.textContent=theme.fallback;caption.textContent=theme.caption;stage.dataset.scene=current;motion();
  }
  new MutationObserver(render).observe(root,{attributes:true,attributeFilter:['data-festival','data-festival-effects','data-festival-focus','data-festival-panel']});
